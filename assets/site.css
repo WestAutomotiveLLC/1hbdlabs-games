@@ -168,3 +168,16 @@ footer p { margin: 6px 0 0; }
   @keyframes float-one { 50% { transform: translateY(-14px) rotate(-4deg); } }
   @keyframes float-two { 50% { transform: translateY(14px) rotate(5deg); } }
 }
+
+/* Tomato Escape */
+.tomato-page { --lime: #ff6b4a; --violet: #ffb36b; }
+.store-button.soon { background: var(--panel); color: var(--ink); cursor: default; }
+.store-button.soon:hover { transform: none; }
+.orbit-three { left: 14%; bottom: 9%; width: 150px; transform: rotate(-3deg); }
+.comic-gallery { grid-template-columns: 1fr; max-width: 900px; }
+.comic-gallery img { border-radius: 14px; }
+.policy { max-width: 760px; margin: 0 auto; padding: 60px 0 40px; }
+.policy h2 { margin-top: 48px; }
+.policy p, .policy li { color: #d7d7d2; line-height: 1.7; }
+.policy a { color: var(--lime); }
+@media (max-width: 820px) { .orbit-three { width: 112px; left: 10%; bottom: 8%; } }
