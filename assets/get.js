@@ -19,4 +19,5 @@
 
   if (isIOS) location.replace(ios);
   else if (isAndroid) location.replace(android);
+  else document.querySelector('.eyebrow').textContent = 'Free download';
 })();
