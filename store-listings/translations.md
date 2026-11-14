@@ -154,6 +154,76 @@ Libre ang buong paglalakbay sa pag-aaral. Ang Translator's Guild ay isang opsiyo
 
 Lumaban muna. Matuto habang daan.
 
+### Google Play: French (fr-FR, fr-CA)
+
+**Short description:** Apprenez l'anglais, l'espagnol, le tagalog ou le coréen dans un RPG de combat.
+
+**Full description:**
+
+The Last Translator est un jeu d'aventure et de combat où la langue est votre arme.
+
+Combattez à travers un monde rempli d'histoires en traduisant l'anglais, l'espagnol, le tagalog, le français et le coréen sous pression, et maintenant en résolvant aussi des problèmes de maths en plein combat. Chaque bonne réponse porte un coup. Chaque erreur affiche la correction, renforce le mot et vous donne une nouvelle chance de vous en souvenir. Vous ne vous arrêtez pas pour faire des leçons classiques : vous apprenez parce que le combat l'exige.
+
+C'est d'abord un jeu vidéo et, par conception, un outil d'apprentissage des langues. La pratique du vocabulaire alimente les combats, si bien qu'apprendre devient une conséquence naturelle du jeu. Il est conçu pour progresser vite et retenir durablement grâce au rappel actif, à la répétition, à la correction immédiate et à l'envie de gagner.
+
+Choisissez un cours de langue (anglais, espagnol, tagalog, français ou coréen) ou relevez le défi des Maths, et combattez à travers 90 niveaux de rencontres et de boss dans dix mondes illustrés. Maîtrisez 900 mots (ou problèmes de maths) dans chaque cours en vous frayant un chemin jusqu'au sommet.
+
+Pour une révision rapide, la liste de mots, la prononciation, les cartes mémoire, l'entraînement des mots favoris et la révision de niveau vous aident à étudier exactement les mots dont vous avez besoin. Les mots manqués sont automatiquement ajoutés aux favoris, et les séries vous donnent une raison de revenir vous battre.
+
+Fonctionnalités :
+
+• Apprentissage des langues par le combat, dans les deux sens de traduction
+• 900 mots dans chaque cours : cinq langues plus les maths, 5 400 au total
+• Français et coréen ajoutés : cinq langues dans un seul jeu
+• Combats de maths
+• Dix mondes illustrés avec rencontres et boss
+• Corrections immédiates et progression fondée sur la maîtrise
+• Listes de mots, prononciation, cartes mémoire, entraînement des favoris et révision de niveau
+• Modes Entraînement et Survie qui n'utilisent pas l'énergie de l'histoire
+• Combats JcJ privés en multijoueur avec des codes de salle
+• Espagnol d'Amérique latine plutôt neutre, avec les autres sens courants acceptés
+• Séries pour rester motivé
+• Ajoutez des amis et entretenez des séries avec eux
+
+Tout le parcours d'apprentissage reste gratuit. Translator's Guild est un achat unique facultatif qui supprime les limites d'énergie de l'histoire et les étapes avec publicités récompensées. Il ne donne jamais d'attaques plus fortes, de combats plus faciles, de vocabulaire exclusif ni de progression plus rapide.
+
+Combattez d'abord. Apprenez en chemin.
+
+### Google Play: Korean (ko-KR)
+
+**Short description:** 전투 RPG로 영어, 스페인어, 타갈로그어, 프랑스어를 배우세요.
+
+**Full description:**
+
+The Last Translator는 언어가 무기가 되는 전투 어드벤처 게임입니다.
+
+압박 속에서 영어, 스페인어, 타갈로그어, 프랑스어, 한국어를 번역하며 이야기가 가득한 세계를 헤쳐 나가세요. 이제 전투 중에 수학 문제도 풀 수 있습니다. 정답을 맞힐 때마다 공격이 들어갑니다. 틀리면 바로 정답을 보여 주고 단어를 다시 익히게 하며, 다시 기억할 기회를 줍니다. 전통적인 수업을 하려고 멈출 필요가 없습니다. 전투가 요구하기 때문에 자연스럽게 배우게 됩니다.
+
+무엇보다 비디오 게임이며, 언어 학습 도구로 설계되었습니다. 어휘 연습이 전투를 움직이기 때문에 게임을 하다 보면 자연스럽게 배우게 됩니다. 능동적 회상, 반복 노출, 즉각적인 교정, 그리고 이기고 싶은 마음을 통해 빠르게 실력을 키우고 오래 기억하도록 만들어졌습니다.
+
+언어 코스(영어, 스페인어, 타갈로그어, 프랑스어, 한국어)를 고르거나 수학에 도전하고, 열 개의 일러스트 세계에서 90개 레벨의 이야기 전투와 보스를 물리치세요. 정상까지 싸워 나가며 코스마다 900개의 단어(또는 수학 문제)를 마스터하세요.
+
+빠르게 복습하고 싶을 때는 단어 목록, 발음 도구, 플래시카드, 별표 연습, 레벨 복습으로 필요한 단어만 골라 공부할 수 있습니다. 틀린 단어에는 자동으로 별표가 붙고, 연속 기록이 계속 돌아와 싸울 이유가 되어 줍니다.
+
+주요 기능:
+
+• 양방향 번역으로 배우는 전투 중심 언어 학습
+• 코스마다 900개 단어: 다섯 개 언어와 수학, 총 5,400개
+• 프랑스어와 한국어 추가: 한 게임에서 다섯 개 언어
+• 수학 전투
+• 이야기 전투와 보스가 있는 열 개의 일러스트 세계
+• 즉각적인 교정과 숙달 기반 진행
+• 단어 목록, 발음, 플래시카드, 별표 연습, 레벨 복습
+• 스토리 에너지를 쓰지 않는 연습 모드와 서바이벌 모드
+• 방 코드로 즐기는 비공개 멀티플레이 PvP 전투
+• 대체로 중립적인 라틴아메리카 스페인어, 흔히 쓰이는 다른 뜻도 정답 인정
+• 동기를 유지해 주는 연속 기록
+• 친구를 추가하고 함께 연속 기록 유지
+
+모든 학습 과정은 무료입니다. Translator's Guild는 스토리 에너지 제한과 보상형 광고 단계를 없애 주는 선택형 1회 구매입니다. 더 강한 공격, 더 쉬운 전투, 독점 어휘, 더 빠른 진행은 절대 제공하지 않습니다.
+
+먼저 싸우세요. 배움은 그 과정에서 따라옵니다.
+
 ### App Store: Spanish (Mexico)
 
 | Field | Text |
@@ -189,6 +259,18 @@ CARACTERÍSTICAS
 Todo el camino de aprendizaje es gratis. Translator's Guild es una compra única opcional que elimina los límites de energía de la historia y los pasos con anuncios con recompensa. Nunca da ataques más fuertes, batallas más fáciles, vocabulario exclusivo ni progreso más rápido.
 
 Primero pelea. Aprende en el camino.
+
+### App Store: French (France) and Korean
+
+Description: the Google Play French / Korean full description above (it matches the current game, with French,
+Korean and math). Make sure the App Store English text is updated to the same version at the same time.
+
+| Field | French | Korean |
+| --- | --- | --- |
+| Name | The Last Translator | The Last Translator |
+| Subtitle | Apprendre en combattant | 싸우며 배우는 외국어 |
+| Promotional text | Un RPG de combat où les mots sont votre arme. Traduisez pour attaquer, battez les boss et maîtrisez 900 mots par cours. | 단어가 무기가 되는 전투 RPG. 번역으로 공격하고 보스를 물리치며 코스마다 900개 단어를 마스터하세요. |
+| Keywords | apprendre anglais,anglais,espagnol,coréen,rpg,combat,vocabulaire,mots,langues,traduire,jeu | 영어공부,영어,스페인어,타갈로그어,프랑스어,단어,어휘,rpg,전투,외국어,번역,게임 |
 
 ---
 
