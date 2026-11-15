@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What's your language learning type? — 1HBDLabs quiz</title>
+  <meta name="description" content="A 30-second quiz that tells you why your Spanish or English hasn't stuck yet, and which game fits the way you learn.">
+  <meta property="og:title" content="What's your language learning type?">
+  <meta property="og:description" content="Take the 30-second quiz and find out why it hasn't stuck yet, and what will.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://westautomotivellc.github.io/1hbdlabs-games/assets/translator-feature.png">
+  <meta property="og:url" content="https://westautomotivellc.github.io/1hbdlabs-games/quiz/">
+  <link rel="canonical" href="https://westautomotivellc.github.io/1hbdlabs-games/quiz/">
+  <link rel="stylesheet" href="../assets/site.css">
+  <style>
+    .quiz { width: min(640px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 64px; }
+    .quiz-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+    .langs { display: flex; gap: 6px; }
+    .langs button { font: inherit; font-size: .8rem; font-weight: 800; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+    .langs button[aria-pressed="true"] { color: #0b0b11; background: var(--lime); border-color: var(--lime); }
+    .progress { height: 6px; background: var(--panel); border-radius: 999px; overflow: hidden; margin: 22px 0 8px; }
+    .progress span { display: block; height: 100%; width: 0; background: var(--lime); transition: width .3s; }
+    .step-label { color: var(--muted); font-size: .8rem; font-weight: 700; margin: 0 0 18px; }
+    .quiz h1 { font-size: clamp(2rem, 7vw, 3.2rem); line-height: 1.05; letter-spacing: -.03em; margin: 8px 0 14px; }
+    .quiz h2 { font-size: clamp(1.4rem, 5vw, 1.9rem); line-height: 1.2; letter-spacing: -.02em; margin: 0 0 20px; }
+    .options { display: grid; gap: 12px; }
+    .option { font: inherit; text-align: left; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; font-size: 1.02rem; line-height: 1.45; cursor: pointer; transition: border-color .15s, transform .15s; }
+    .option:hover, .option:focus-visible { border-color: var(--lime); transform: translateY(-1px); outline: none; }
+    .option.right { border-color: var(--lime); background: rgba(203,255,90,.14); }
+    .option.wrong { border-color: var(--orange); background: rgba(255,139,77,.12); }
+    .cta { font: inherit; font-weight: 900; font-size: 1.05rem; color: #0b0b11; background: var(--lime); border: 0; border-radius: 999px; padding: 15px 26px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .cta.secondary { color: var(--ink); background: var(--panel); border: 1px solid var(--line); }
+    .timer { height: 10px; background: var(--panel); border-radius: 999px; overflow: hidden; margin: 0 0 20px; }
+    .timer span { display: block; height: 100%; width: 100%; background: var(--orange); }
+    .feedback { margin: 18px 0 0; color: #d7d7d2; }
+    .result-type { font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: 1; letter-spacing: -.03em; margin: 6px 0 16px; color: var(--lime); }
+    .fortune { font-size: 1.12rem; color: #e9e9e4; margin: 0 0 24px; }
+    .why { list-style: none; padding: 0; margin: 0 0 28px; display: grid; gap: 10px; }
+    .why li { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 12px 40px; position: relative; }
+    .why li::before { content: "✓"; position: absolute; left: 15px; top: 11px; color: var(--lime); font-weight: 900; }
+    .game-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; margin: 0 0 22px; }
+    .game-head { display: flex; gap: 16px; align-items: center; margin-bottom: 12px; }
+    .game-head img { width: 72px; height: 72px; border-radius: 18px; }
+    .game-head h3 { margin: 0; font-size: 1.5rem; line-height: 1.1; }
+    .game-head p { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
+    .made-for { font-weight: 800; font-size: 1.05rem; margin: 14px 0 18px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .also { display: grid; gap: 10px; margin: 0 0 26px; }
+    .also a { display: flex; gap: 12px; align-items: center; text-decoration: none; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px; }
+    .also img { width: 40px; height: 40px; border-radius: 10px; }
+    .small { color: var(--muted); font-size: .9rem; }
+    .mix { display: grid; gap: 10px; margin: 0 0 26px; }
+    .mix-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-weight: 700; }
+    .mix-row .pct { color: var(--muted); }
+    .mix-bar { grid-column: 1 / -1; height: 8px; background: var(--panel); border-radius: 999px; overflow: hidden; }
+    .mix-bar span { display: block; height: 100%; background: var(--violet); }
+    .mix-row:first-child .mix-bar span { background: var(--lime); }
+    details.all-types { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 16px; margin: 0 0 26px; }
+    details.all-types summary { cursor: pointer; font-weight: 800; }
+    details.all-types dl { margin: 12px 0 0; }
+    details.all-types dt { font-weight: 800; margin-top: 10px; }
+    details.all-types dt.mine { color: var(--lime); }
+    details.all-types dd { margin: 2px 0 0; color: #d7d7d2; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="quiz">
+    <div class="quiz-top">
+      <a class="brand" href="../">1HBD<span>Labs</span></a>
+      <div class="langs" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="es">ES</button>
+        <button type="button" data-lang="tl">TL</button>
+      </div>
+    </div>
+    <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+    <p class="step-label" id="stepLabel"></p>
+    <main id="screen" aria-live="polite"></main>
+  </div>
+
+<script>
+// Quiz flow: [family (es/tl only)] → level → struggle (depends on level) →
+// 5-second challenge → kind of fun → time → result.
+// The result type comes from the struggle answer; the game comes from the
+// level (serious learners get WordBust or The Last Translator) and the kind of
+// fun. Bored, casual learners lean to Tomato Escape.
+
+// Set to '../get/tomato-escape/' once Tomato Escape is in the stores.
+var TOMATO_GET = null;
+
+var GAMES = {
+  lt: { icon: '../assets/translator-icon.png', name: 'The Last Translator', words: 900, get: '../get/', page: '../the-last-translator/' },
+  wb: { icon: '../assets/wordbust-icon.png', name: 'WordBust', words: 600, get: '../get/wordbust/', page: '../wordbust/' },
+  tomato: { icon: '../assets/tomato-icon.png', name: 'Tomato Escape', words: 250, get: TOMATO_GET, page: '../tomato-escape/' }
+};
+
+// Each struggle answer: [learning type, feature it points to]
+var STRUGGLE = {
+  A: [['comeback', 'friends'], ['gamebrain', 'game'], ['fresh', 'useful'], ['fresh', 'small']],
+  B: [['hidden', 'spelling'], ['hidden', 'both'], ['hidden', 'errors'], ['comeback', 'duels']],
+  C: [['hidden', 'speed'], ['comeback', 'words'], ['comeback', 'friends'], ['hidden', 'errors']],
+  D: [['pressure', 'pressure'], ['pressure', 'speed'], ['pressure', 'recall'], ['pressure', 'all']]
+};
+var FUN = ['battle', 'puzzle', 'adventure', 'anything'];
+var FAMILY = ['kids', 'abroad', 'partner', 'work'];
+
+var T = {
+  en: {
+    stepOf: 'Question {n} of {t}',
+    eyebrow: '30-second quiz',
+    title: "What's your Spanish learning type?",
+    intro: "Answer a few quick questions. We'll tell you why Spanish hasn't stuck yet, and what will.",
+    start: 'Start the quiz',
+    family: null,
+    level: 'Be honest: what happens when someone actually speaks Spanish to you?',
+    levels: [
+      'I catch one word, smile, and nod like I understood.',
+      "I can build a sentence, as long as nobody's waiting on me.",
+      'I get there slowly, but people switch to English to save time.',
+      "I understand almost everything, until someone uses slang or a saying and the joke's over before I get it."
+    ],
+    struggleQ: { A: "Why hasn't it stuck yet?", B: 'What trips you up most?', C: 'What slows you down?', D: 'When does your Spanish let you down?' },
+    struggle: {
+      A: ["I've started before. The app is still on my phone somewhere.",
+          'Studying feels like homework, and I already did my time in school.',
+          "I already know perro and gato. I want words I'd actually use.",
+          "I'm starting from zero and don't know where to begin."],
+      B: ["I know the word, but I'd never spell it right.",
+          'I understand more than I can say.',
+          'I keep forgetting the same few words.',
+          "I'd learn faster if I had someone to compete with."],
+      C: ["I translate in my head first, and by then the moment's gone.",
+          "I've stalled. I'm not getting better anymore.",
+          'I have no one to practice with.',
+          "I'm never sure if I'm saying it right."],
+      D: ["When I'm nervous or put on the spot, words vanish.",
+          "I know it, I just can't pull it up fast enough.",
+          'Sayings and slang lose me.',
+          'Nothing is at my level, so I stopped practicing.']
+    },
+    challengeTitle: 'Quick test: you have 5 seconds.',
+    challengeQ: 'What does «perro» mean?',
+    challengeOpts: ['Dog', 'Cat', 'Bread', 'Door'],
+    challengeRight: "You answered against a 5-second timer. That's how every round feels.",
+    challengeMissed: "The timer got you. That's the skill nobody trains, until now.",
+    next: 'Next',
+    funQ: 'Which sounds most like your kind of fun?',
+    fun: ['Battling my friends, and winning.', 'A calm puzzle I can play anywhere.', 'An action adventure with a story.', "Honestly? Anything that doesn't feel like studying."],
+    timeQ: 'How much time can you honestly give it each day?',
+    times: ['Maybe 5 minutes.', '15 minutes on a good day.', "If it's fun, I lose track of time."],
+    who: {},
+    typeLabel: 'Your learning type',
+    types: {
+      comeback: ['The Comeback Learner', "You didn't fail at Spanish. Boring apps failed you. You quit when it stopped being fun, and nobody noticed you were gone. This time you need a reason to come back every day, and someone who notices when you don't."],
+      gamebrain: ['The Game Brain', "You learn by doing, not by memorizing lists. The second it feels like homework, your brain checks out. Disguise the learning and you'll be surprised how much sticks."],
+      fresh: ['The Fresh Start', "You don't need a textbook. You need a first step small enough to take today, and words you'll actually get to use."],
+      hidden: ['The Hidden Speaker', "You understand more than you show. The words are in there; they just won't come out on time. You don't need more words. You need faster ones."],
+      pressure: ['The Pressure Learner', "Your Spanish is good, until it matters. To truly own a language you have to recall words fast, under pressure. That's the one thing you've never practiced. This is the perfect practice for you."]
+    },
+    typeShort: {
+      comeback: 'Started before, needs a reason to keep going.',
+      gamebrain: 'Learns by playing, not memorizing.',
+      fresh: 'Ready for a first step that fits in a day.',
+      hidden: 'Understands more than they can say, yet.',
+      pressure: 'Strong, but words vanish when it counts.'
+    },
+    mixLabel: 'Your learner mix',
+    allTypes: 'See all 5 learner types',
+    whyLabel: 'How we knew',
+    features: {
+      friends: 'Invite friends and keep a streak together. Someone notices when you skip a day.',
+      game: "It's a game first. You'll be playing, not studying.",
+      useful: "No more cat-and-dog lists: everyday words you'll actually say.",
+      small: 'Small lessons, just 10 words a day, with built-in flashcards.',
+      spelling: 'You type the answers, so the spelling sticks.',
+      both: 'You practice both ways: Spanish → English and English → Spanish.',
+      errors: 'An error counter tracks the exact words you miss, so you fix your weak spots.',
+      duels: 'Challenge friends to duels. Losing to your cousin is great motivation.',
+      speed: "Timed rounds train you to answer before the moment's gone.",
+      words: "Up to 900 words, so there's always a next level.",
+      pressure: 'Every round is played under pressure, exactly when words used to vanish.',
+      recall: 'Fast recall frees your brain to catch slang and sayings.',
+      all: 'Three games, three speeds. Something is always at your level.'
+    },
+    tenADay: '10 words a day is all it takes.',
+    yourGame: 'Made for you',
+    blurbs: {
+      lt: 'Battle through story worlds where every correct answer lands a hit.',
+      wb: 'Catch falling words before they hit the top. An arcade game that teaches 600 words.',
+      tomato: 'Help a spy tomato escape the sauce factory. Every gate opens with a word.'
+    },
+    words: '{n} words · free to download',
+    madeFor: "This game was made for your learning type. It's designed to make you forget you're learning, and give you the tools to start speaking.",
+    plan: 'Your plan: 10 words a day.',
+    download: 'Download free',
+    soon: 'Coming soon. See the game',
+    meanwhile: 'Start today while you wait:',
+    also: 'Also great for you:',
+    share: 'Share my result',
+    shareText: "I'm {type}. What's your learning type?",
+    copied: 'Link copied!',
+    retake: 'Retake the quiz'
+  },
+
+  es: {
+    stepOf: 'Pregunta {n} de {t}',
+    eyebrow: 'Quiz de 30 segundos',
+    title: '¿Cuál es tu forma de aprender inglés?',
+    intro: 'Responde unas preguntas rápidas. Te diremos por qué el inglés no se te ha quedado, y qué sí va a funcionar.',
+    start: 'Empezar el quiz',
+    family: '¿A quién quieres entender sin pedirle que te repita?',
+    families: ['A mis hijos o nietos, que me contestan en inglés.', 'A mi familia en Estados Unidos.', 'A la familia de mi pareja.', 'A la gente del trabajo.'],
+    level: 'Sé sincero: ¿qué pasa cuando alguien te habla en inglés?',
+    levels: [
+      'Entiendo una palabra, sonrío y digo que sí con la cabeza.',
+      'Puedo armar una frase… si nadie está esperando.',
+      'Me doy a entender despacio, pero me cambian al español para ahorrar tiempo.',
+      'Entiendo casi todo, hasta que usan un dicho o slang y el chiste ya pasó.'
+    ],
+    struggleQ: { A: '¿Por qué no se te ha quedado?', B: '¿Qué es lo que más te cuesta?', C: '¿Qué te frena?', D: '¿Cuándo te falla el inglés?' },
+    struggle: {
+      A: ['Ya empecé antes. La app sigue por ahí en mi teléfono.',
+          'Estudiar se siente como tarea, y yo ya terminé la escuela.',
+          "Ya sé «dog» y «cat». Quiero palabras que de verdad voy a usar.",
+          'Empiezo de cero y no sé por dónde empezar.'],
+      B: ['Sé la palabra, pero no la escribiría bien.',
+          'Entiendo más de lo que puedo decir.',
+          'Siempre se me olvidan las mismas palabras.',
+          'Aprendería más rápido si tuviera con quién competir.'],
+      C: ['Traduzco en mi cabeza primero, y para entonces ya pasó el momento.',
+          'Me estanqué. Ya no avanzo.',
+          'No tengo con quién practicar.',
+          'Nunca sé si lo estoy diciendo bien.'],
+      D: ['Cuando estoy nervioso, las palabras desaparecen.',
+          'La sé, pero no me sale a tiempo.',
+          'Los dichos y el slang me pierden.',
+          'Nada está a mi nivel, así que dejé de practicar.']
+    },
+    challengeTitle: 'Prueba rápida: tienes 5 segundos.',
+    challengeQ: '¿Cómo se dice «perro» en inglés?',
+    challengeOpts: ['Dog', 'Cat', 'Bread', 'Door'],
+    challengeRight: 'Respondiste con 5 segundos en el reloj. Así se siente cada ronda.',
+    challengeMissed: 'El reloj te ganó. Esa es la habilidad que nadie entrena… hasta ahora.',
+    next: 'Siguiente',
+    funQ: '¿Qué suena más a tu tipo de diversión?',
+    fun: ['Pelear contra mis amigos, y ganar.', 'Un rompecabezas tranquilo que pueda jugar donde sea.', 'Una aventura de acción con historia.', 'La verdad, cualquier cosa que no se sienta como estudiar.'],
+    timeQ: '¿Cuánto tiempo le puedes dar de verdad cada día?',
+    times: ['Tal vez 5 minutos.', '15 minutos en un buen día.', 'Si es divertido, pierdo la noción del tiempo.'],
+    who: { kids: 'tus hijos o nietos', abroad: 'tu familia en Estados Unidos', partner: 'la familia de tu pareja', work: 'la gente del trabajo' },
+    typeLabel: 'Tu tipo de aprendiz',
+    types: {
+      comeback: ['El Que Regresa', 'No fallaste tú con el inglés: te fallaron las apps aburridas. Lo dejaste cuando dejó de ser divertido y nadie notó que te fuiste. Esta vez necesitas una razón para volver cada día, y alguien que note cuando no vuelves. Piensa en {who}: ahí está tu razón.'],
+      gamebrain: ['Mente de Jugador', 'Aprendes haciendo, no memorizando listas. En cuanto algo se siente como tarea, tu mente se desconecta. Disfraza el aprendizaje y te sorprenderá todo lo que se te queda.'],
+      fresh: ['Nuevo Comienzo', 'No necesitas un libro de texto. Necesitas un primer paso tan pequeño que puedas darlo hoy, y palabras que de verdad vas a usar con {who}.'],
+      hidden: ['Hablante Escondido', 'Entiendes más de lo que demuestras. Las palabras están ahí; solo que no salen a tiempo. Cuando {who} te habla, la respuesta te llega tarde. No necesitas más palabras: necesitas palabras más rápidas.'],
+      pressure: ['Aprendiz Bajo Presión', 'Tu inglés es bueno… hasta que importa. Para dominar un idioma de verdad tienes que recordar las palabras rápido y bajo presión. Es lo único que nunca has practicado. Esta es la práctica perfecta para ti.']
+    },
+    typeShort: {
+      comeback: 'Ya empezó antes y necesita una razón para seguir.',
+      gamebrain: 'Aprende jugando, no memorizando.',
+      fresh: 'Listo para un primer paso que quepa en un día.',
+      hidden: 'Entiende más de lo que puede decir… por ahora.',
+      pressure: 'Habla bien, pero las palabras se van cuando más importa.'
+    },
+    mixLabel: 'Tu mezcla de aprendiz',
+    allTypes: 'Ver los 5 tipos de aprendiz',
+    whyLabel: 'Cómo lo supimos',
+    features: {
+      friends: 'Invita a tu familia o amigos y mantengan una racha juntos. Alguien nota cuando faltas un día.',
+      game: 'Primero es un juego. Vas a estar jugando, no estudiando.',
+      useful: 'Nada de listas de «cat» y «dog»: palabras que usarás de verdad.',
+      small: 'Lecciones pequeñas, solo 10 palabras al día, con tarjetas de estudio incluidas.',
+      spelling: 'Tú escribes las respuestas, así se te queda la ortografía.',
+      both: 'Practicas en los dos sentidos: inglés → español y español → inglés.',
+      errors: 'Un contador de errores marca las palabras exactas que fallas para que las refuerces.',
+      duels: 'Reta a tus amigos a duelos. Perder contra tu primo motiva mucho.',
+      speed: 'Las rondas con tiempo te entrenan para responder antes de que pase el momento.',
+      words: 'Hasta 900 palabras, así que siempre hay un siguiente nivel.',
+      pressure: 'Cada ronda se juega bajo presión, justo cuando antes se te iban las palabras.',
+      recall: 'Recordar rápido deja tu mente libre para captar dichos y expresiones.',
+      all: 'Tres juegos, tres velocidades. Siempre hay algo a tu nivel.'
+    },
+    tenADay: 'Con 10 palabras al día es suficiente.',
+    yourGame: 'Hecho para ti',
+    blurbs: {
+      lt: 'Pelea en mundos con historia donde cada respuesta correcta es un golpe.',
+      wb: 'Atrapa las palabras que caen antes de que lleguen arriba. Un arcade que enseña 600 palabras.',
+      tomato: 'Ayuda a un tomate espía a escapar de la fábrica de salsa. Cada puerta se abre con una palabra.'
+    },
+    words: '{n} palabras · descarga gratis',
+    madeFor: 'Este juego fue hecho para tu forma de aprender. Está diseñado para que olvides que estás aprendiendo, y te da las herramientas para empezar a hablar.',
+    plan: 'Tu plan: 10 palabras al día.',
+    download: 'Descargar gratis',
+    soon: 'Muy pronto. Ver el juego',
+    meanwhile: 'Empieza hoy mientras tanto:',
+    also: 'También es para ti:',
+    share: 'Compartir mi resultado',
+    shareText: 'Soy «{type}». ¿Cuál es tu forma de aprender?',
+    copied: '¡Enlace copiado!',
+    retake: 'Repetir el quiz'
+  },
+
+  tl: {
+    stepOf: 'Tanong {n} sa {t}',
+    eyebrow: '30-segundong quiz',
+    title: 'Anong klase ka ng English learner?',
+    intro: 'Sagutin ang ilang mabilis na tanong. Sasabihin namin kung bakit hindi pa tumatatak ang English mo, at kung ano ang gagana.',
+    start: 'Simulan ang quiz',
+    family: 'Sino ang gusto mong maintindihan nang hindi na pinapaulit?',
+    families: ['Ang mga anak o apo ko, na sumasagot sa English.', 'Ang pamilya ko sa abroad.', 'Ang pamilya ng partner ko.', 'Ang mga customer o boss ko.'],
+    level: "Aminin mo: ano ang nangyayari kapag may kumausap sa'yo sa English?",
+    levels: [
+      'May isang salita akong naiintindihan, tapos ngingiti at tatango na lang ako.',
+      'Kaya kong bumuo ng sentence… basta walang naghihintay.',
+      'Nakakaintindi ako nang dahan-dahan, pero nagta-Tagalog na lang sila para mabilis.',
+      'Halos naiintindihan ko lahat, hanggang may gumamit ng slang o kasabihan at tapos na ang biro bago ko makuha.'
+    ],
+    struggleQ: { A: 'Bakit hindi pa tumatatak?', B: "Ano ang pinakamahirap para sa'yo?", C: "Ano ang nagpapabagal sa'yo?", D: 'Kailan ka iniiwan ng English mo?' },
+    struggle: {
+      A: ['Nasubukan ko na dati. Nasa phone ko pa yung app.',
+          'Parang assignment ang pag-aaral, at tapos na ako sa school.',
+          "Alam ko na ang «dog» at «cat». Gusto ko ng salitang talagang magagamit ko.",
+          'Nagsisimula ako sa zero at hindi ko alam kung saan magsisimula.'],
+      B: ['Alam ko ang salita, pero hindi ko ma-spell nang tama.',
+          'Mas marami akong naiintindihan kaysa nasasabi.',
+          'Lagi kong nakakalimutan ang parehong mga salita.',
+          'Mas bibilis ako kung may kakumpitensya ako.'],
+      C: ['Nagta-translate muna ako sa isip, at lumipas na ang moment.',
+          'Na-stuck na ako. Hindi na ako umaasenso.',
+          'Wala akong kasama mag-practice.',
+          'Hindi ako sigurado kung tama ang sinasabi ko.'],
+      D: ['Kapag kinakabahan ako, nawawala ang mga salita.',
+          'Alam ko, pero hindi lumalabas agad.',
+          'Nalilito ako sa slang at kasabihan.',
+          'Walang nasa level ko, kaya tumigil na ako mag-practice.']
+    },
+    challengeTitle: 'Mabilis na test: may 5 segundo ka.',
+    challengeQ: 'Ano ang «aso» sa English?',
+    challengeOpts: ['Dog', 'Cat', 'Bread', 'Door'],
+    challengeRight: 'Sumagot ka habang tumatakbo ang 5-segundong timer. Ganyan ang pakiramdam ng bawat round.',
+    challengeMissed: 'Naunahan ka ng timer. Iyan ang skill na walang nagte-train… hanggang ngayon.',
+    next: 'Susunod',
+    funQ: 'Alin ang pinaka-kagaya ng trip mo?',
+    fun: ['Lumaban sa barkada, at manalo.', 'Isang chill na puzzle na pwede kahit saan.', 'Isang action adventure na may kwento.', 'Totoo? Kahit ano basta hindi parang nag-aaral.'],
+    timeQ: 'Gaano katagal mo talaga kayang ibigay kada araw?',
+    times: ['Siguro 5 minuto.', '15 minuto kapag maganda ang araw.', 'Kapag masaya, hindi ko na namamalayan ang oras.'],
+    who: { kids: 'ang mga anak o apo mo', abroad: 'ang pamilya mo sa abroad', partner: 'ang pamilya ng partner mo', work: 'ang mga customer o boss mo' },
+    typeLabel: 'Ang learner type mo',
+    types: {
+      comeback: ['Ang Bumabalik', 'Hindi ikaw ang pumalya sa English. Pinalya ka ng mga boring na app. Tumigil ka nang hindi na masaya, at walang nakapansin. Ngayon kailangan mo ng dahilan para bumalik araw-araw, at taong makakapansin kapag hindi ka bumalik. Isipin mo {who}: sila ang dahilan mo.'],
+      gamebrain: ['Utak Gamer', 'Natututo ka sa paggawa, hindi sa pagme-memorize. Sa sandaling maging parang assignment, nawawala ang interes mo. Itago ang pag-aaral sa laro at magugulat ka kung gaano karami ang tatatak.'],
+      fresh: ['Bagong Simula', 'Hindi mo kailangan ng libro. Kailangan mo ng unang hakbang na kaya mong gawin ngayon, at mga salitang talagang magagamit mo kasama {who}.'],
+      hidden: ['Tagong Speaker', "Mas marami kang naiintindihan kaysa ipinapakita mo. Nandiyan ang mga salita; hindi lang lumalabas sa tamang oras. Kapag may kumausap sa'yo, huli nang dumarating ang sagot. Hindi mo kailangan ng mas maraming salita. Kailangan mo ng mas mabibilis."],
+      pressure: ['Pressure Learner', "Magaling ang English mo… hanggang sa mahalagang sandali. Para tunay mong ma-master ang isang wika, kailangan mong maalala ang mga salita nang mabilis at may pressure. Iyan ang hindi mo pa napa-practice. Ito ang perpektong practice para sa'yo."]
+    },
+    typeShort: {
+      comeback: 'Nasubukan na dati, kailangan ng dahilan para magtuloy.',
+      gamebrain: 'Natututo sa paglalaro, hindi sa pagme-memorize.',
+      fresh: 'Handa sa unang hakbang na kasya sa isang araw.',
+      hidden: 'Mas marami ang naiintindihan kaysa nasasabi… sa ngayon.',
+      pressure: 'Magaling, pero nawawala ang salita kapag mahalaga na.'
+    },
+    mixLabel: 'Ang learner mix mo',
+    allTypes: 'Tingnan ang 5 learner type',
+    whyLabel: 'Paano namin nalaman',
+    features: {
+      friends: 'Imbitahin ang pamilya o barkada at magtuloy ng streak nang sabay. May makakapansin kapag lumiban ka.',
+      game: 'Laro muna ito. Maglalaro ka, hindi mag-aaral.',
+      useful: 'Hindi na puro «cat» at «dog»: mga salitang talagang gagamitin mo.',
+      small: 'Maliliit na lesson, 10 salita lang kada araw, may kasamang flashcards.',
+      spelling: 'Ikaw ang nagta-type ng sagot, kaya tumatatak ang spelling.',
+      both: 'Magpa-practice ka sa dalawang direksyon: English → Tagalog at Tagalog → English.',
+      errors: 'May error counter na nagtatala ng mga salitang lagi mong mali, para ma-practice mo ang mahina mo.',
+      duels: 'Hamunin ang barkada sa duel. Nakaka-motivate ang matalo sa pinsan mo.',
+      speed: "Ang mga timed round ay nagtuturo sa'yong sumagot bago lumipas ang moment.",
+      words: 'Hanggang 900 salita, kaya laging may susunod na level.',
+      pressure: 'Bawat round ay nilalaro nang may pressure, mismong oras na dati ay nawawala ang mga salita.',
+      recall: 'Kapag mabilis kang nakakaalala, malaya ang isip mong makuha ang slang at kasabihan.',
+      all: 'Tatlong laro, tatlong bilis. Laging may nasa level mo.'
+    },
+    tenADay: 'Sapat na ang 10 salita kada araw.',
+    yourGame: "Ginawa para sa'yo",
+    blurbs: {
+      lt: 'Lumaban sa mga mundo ng kwento kung saan bawat tamang sagot ay isang tama sa kalaban.',
+      wb: 'Saluhin ang mga bumabagsak na salita bago umabot sa itaas. Arcade na nagtuturo ng 600 salita.',
+      tomato: 'Tulungan ang espiyang kamatis na tumakas sa pabrika ng sarsa. Bawat gate ay nabubuksan ng isang salita.'
+    },
+    words: '{n} salita · libreng i-download',
+    madeFor: 'Ginawa ang larong ito para sa klase mo ng pag-aaral. Dinisenyo ito para makalimutan mong nag-aaral ka, at bigyan ka ng tools para magsimulang magsalita.',
+    plan: 'Ang plano mo: 10 salita kada araw.',
+    download: 'I-download nang libre',
+    soon: 'Malapit na. Tingnan ang laro',
+    meanwhile: 'Magsimula ngayon habang naghihintay:',
+    also: "Bagay din sa'yo:",
+    share: 'I-share ang resulta ko',
+    shareText: 'Ako ay «{type}». Ano ang learner type mo?',
+    copied: 'Nakopya ang link!',
+    retake: 'Ulitin ang quiz'
+  }
+};
+
+var lang = 'en';
+var state;
+var steps;
+var stepIndex;
+var screen = document.getElementById('screen');
+var bar = document.getElementById('bar');
+var stepLabel = document.getElementById('stepLabel');
+var challengeTimer = null;
+
+function fmt(s, vars) { return s.replace(/\{(\w+)\}/g, function (_, k) { return vars[k]; }); }
+function el(tag, attrs, children) {
+  var e = document.createElement(tag);
+  for (var k in attrs || {}) {
+    if (k === 'text') e.textContent = attrs[k];
+    else if (k === 'onclick') e.onclick = attrs[k];
+    else e.setAttribute(k, attrs[k]);
+  }
+  (children || []).forEach(function (c) { if (c) e.appendChild(c); });
+  return e;
+}
+
+function pickLang() {
+  var q = new URLSearchParams(location.search).get('lang');
+  if (q && T[q]) return q;
+  var nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+  if (nav === 'es') return 'es';
+  if (nav === 'tl' || nav === 'fi') return (navigator.language || '').toLowerCase().indexOf('fil') === 0 || nav === 'tl' ? 'tl' : 'en';
+  return 'en';
+}
+
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l === 'tl' ? 'fil' : l;
+  document.querySelectorAll('.langs button').forEach(function (b) {
+    b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === l));
+  });
+  restart();
+}
+
+function restart() {
+  clearInterval(challengeTimer);
+  state = { family: null, level: null, struggle: null, challenge: null, fun: null, time: null };
+  steps = (T[lang].family ? ['family'] : []).concat(['level', 'struggle', 'challenge', 'fun', 'time']);
+  stepIndex = -1;
+  renderIntro();
+}
+
+function setProgress() {
+  var total = steps.length;
+  bar.style.width = (stepIndex < 0 ? 0 : Math.min(stepIndex / total, 1) * 100) + '%';
+  stepLabel.textContent = stepIndex >= 0 && stepIndex < total ? fmt(T[lang].stepOf, { n: stepIndex + 1, t: total }) : '';
+}
+
+function renderIntro() {
+  var t = T[lang];
+  setProgress();
+  screen.replaceChildren(
+    el('p', { class: 'eyebrow', text: t.eyebrow }),
+    el('h1', { text: t.title }),
+    el('p', { class: 'lede', text: t.intro }),
+    el('p', {}, [el('button', { class: 'cta', type: 'button', text: t.start, onclick: next })])
+  );
+}
+
+function next() {
+  stepIndex++;
+  setProgress();
+  if (stepIndex >= steps.length) return renderResult();
+  ({ family: renderFamily, level: renderLevel, struggle: renderStruggle, challenge: renderChallenge, fun: renderFun, time: renderTime })[steps[stepIndex]]();
+  window.scrollTo(0, 0);
+}
+
+function question(title, labels, onPick) {
+  screen.replaceChildren(
+    el('h2', { text: title }),
+    el('div', { class: 'options' }, labels.map(function (label, i) {
+      return el('button', { class: 'option', type: 'button', text: label, onclick: function () { onPick(i); next(); } });
+    }))
+  );
+}
+
+function renderFamily() { var t = T[lang]; question(t.family, t.families, function (i) { state.family = FAMILY[i]; }); }
+function renderLevel() { var t = T[lang]; question(t.level, t.levels, function (i) { state.level = 'ABCD'[i]; }); }
+function renderStruggle() {
+  var t = T[lang];
+  question(t.struggleQ[state.level], t.struggle[state.level], function (i) { state.struggle = STRUGGLE[state.level][i]; });
+}
+function renderFun() { var t = T[lang]; question(t.funQ, t.fun, function (i) { state.fun = FUN[i]; }); }
+function renderTime() { var t = T[lang]; question(t.timeQ, t.times, function (i) { state.time = i; }); }
+
+function renderChallenge() {
+  var t = T[lang];
+  var timerFill = el('span');
+  var feedback = el('p', { class: 'feedback' });
+  var nextBtn = el('button', { class: 'cta', type: 'button', text: t.next, onclick: next, hidden: '' });
+  var buttons = t.challengeOpts.map(function (label, i) {
+    return el('button', { class: 'option', type: 'button', text: label, onclick: function () { finish(i === 0, i); } });
+  });
+  // Shuffle the answers so "Dog" isn't always first.
+  var shuffled = buttons.slice().sort(function () { return Math.random() - 0.5; });
+  var done = false;
+  function finish(right, i) {
+    if (done) return;
+    done = true;
+    clearInterval(challengeTimer);
+    state.challenge = right;
+    buttons[0].classList.add('right');
+    if (!right && i !== undefined) buttons[i].classList.add('wrong');
+    buttons.forEach(function (b) { b.disabled = true; });
+    feedback.textContent = right ? t.challengeRight : t.challengeMissed;
+    nextBtn.hidden = false;
+    nextBtn.focus();
+  }
+  screen.replaceChildren(
+    el('p', { class: 'eyebrow', text: t.challengeTitle }),
+    el('h2', { text: t.challengeQ }),
+    el('div', { class: 'timer' }, [timerFill]),
+    el('div', { class: 'options' }, shuffled),
+    feedback,
+    el('p', {}, [nextBtn])
+  );
+  var startedAt = Date.now();
+  challengeTimer = setInterval(function () {
+    var left = Math.max(0, 1 - (Date.now() - startedAt) / 5000);
+    timerFill.style.width = (left * 100) + '%';
+    if (left === 0) finish(false);
+  }, 50);
+}
+
+// Every answer nudges the five learner types; the struggle answer counts most,
+// so it is always the top type. Returns the top three as rounded percentages.
+var TYPES = ['comeback', 'gamebrain', 'fresh', 'hidden', 'pressure'];
+function learnerMix() {
+  var s = { comeback: 0, gamebrain: 0, fresh: 0, hidden: 0, pressure: 0 };
+  function add(type, n) { s[type] += n; }
+  add(state.struggle[0], 6);
+  ({ A: [['fresh', 1], ['gamebrain', 1]], B: [['hidden', 1], ['comeback', 1]],
+     C: [['hidden', 1], ['comeback', 1]], D: [['pressure', 2], ['hidden', 1]] })[state.level]
+    .forEach(function (p) { add(p[0], p[1]); });
+  if (state.challenge) add('gamebrain', 1); else { add('pressure', 1); add('hidden', 1); }
+  ({ battle: [['comeback', 1]], puzzle: [['fresh', 1]], adventure: [['gamebrain', 1]], anything: [['gamebrain', 2]] })[state.fun]
+    .forEach(function (p) { add(p[0], p[1]); });
+  add(['fresh', 'comeback', 'gamebrain'][state.time], 1);
+  // Make sure there are always three types with a share.
+  TYPES.forEach(function (t) { add(t, 1); });
+
+  var top = TYPES.slice().sort(function (a, b) {
+    return s[b] - s[a] || (b === state.struggle[0]) - (a === state.struggle[0]);
+  }).slice(0, 3);
+  var total = top.reduce(function (n, t) { return n + s[t]; }, 0);
+  var pcts = top.map(function (t) { return Math.round(s[t] / total * 100); });
+  pcts[0] += 100 - pcts.reduce(function (a, b) { return a + b; }, 0);
+  return top.map(function (t, i) { return [t, pcts[i]]; });
+}
+
+function chooseGame() {
+  var serious = state.level === 'C' || state.level === 'D';
+  var bored = state.struggle[0] === 'gamebrain';
+  if (!serious && (bored || state.fun === 'adventure' || state.fun === 'anything')) return 'tomato';
+  if (state.fun === 'battle' || state.fun === 'adventure') return 'lt';
+  return 'wb';
+}
+
+function storeLink(key) {
+  var g = GAMES[key];
+  return g.get ? g.get + '?s=quiz_' + lang : null;
+}
+
+function gameCard(key, t) {
+  var g = GAMES[key];
+  var actions = el('div', { class: 'actions' });
+  var link = storeLink(key);
+  var meanwhile = null;
+  if (link) {
+    actions.appendChild(el('a', { class: 'cta', href: link, text: t.download }));
+  } else {
+    actions.appendChild(el('a', { class: 'cta secondary', href: g.page, text: t.soon }));
+    var alt = state.fun === 'battle' ? 'lt' : 'wb';
+    meanwhile = el('p', { class: 'small' }, [
+      document.createTextNode(t.meanwhile + ' '),
+      el('a', { href: storeLink(alt), text: GAMES[alt].name })
+    ]);
+  }
+  return el('div', { class: 'game-card' }, [
+    el('p', { class: 'eyebrow', text: t.yourGame }),
+    el('div', { class: 'game-head' }, [
+      el('img', { src: g.icon, alt: '' }),
+      el('div', {}, [el('h3', { text: g.name }), el('p', { text: fmt(t.words, { n: g.words }) })])
+    ]),
+    el('p', { text: t.blurbs[key] }),
+    el('p', { class: 'made-for', text: t.madeFor }),
+    actions,
+    meanwhile
+  ]);
+}
+
+function renderResult() {
+  var t = T[lang];
+  var typeKey = state.struggle[0];
+  var featureKey = state.struggle[1];
+  var type = t.types[typeKey];
+  var who = state.family ? t.who[state.family] : '';
+  var fortune = fmt(type[1], { who: who });
+  var gameKey = chooseGame();
+  var others = ['lt', 'wb', 'tomato'].filter(function (k) { return k !== gameKey; });
+
+  bar.style.width = '100%';
+  stepLabel.textContent = '';
+
+  var shareBtn = el('button', { class: 'cta secondary', type: 'button', text: t.share });
+  shareBtn.onclick = function () {
+    var url = location.origin + location.pathname + '?lang=' + lang;
+    var text = fmt(t.shareText, { type: type[0] });
+    if (navigator.share) navigator.share({ title: document.title, text: text, url: url }).catch(function () {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(text + ' ' + url).then(function () { shareBtn.textContent = t.copied; });
+  };
+
+  screen.replaceChildren(
+    el('p', { class: 'eyebrow', text: t.typeLabel }),
+    el('p', { class: 'result-type', text: type[0] }),
+    el('p', { class: 'fortune', text: fortune }),
+    el('p', { class: 'eyebrow', text: t.mixLabel }),
+    el('div', { class: 'mix' }, learnerMix().map(function (m) {
+      var fill = el('span');
+      fill.style.width = m[1] + '%';
+      return el('div', { class: 'mix-row' }, [
+        el('span', { text: t.types[m[0]][0] }),
+        el('span', { class: 'pct', text: m[1] + '%' }),
+        el('div', { class: 'mix-bar' }, [fill])
+      ]);
+    })),
+    el('p', { class: 'eyebrow', text: t.whyLabel }),
+    el('ul', { class: 'why' }, [
+      el('li', { text: t.features[featureKey] }),
+      el('li', { text: state.challenge ? t.challengeRight : t.challengeMissed }),
+      el('li', { text: t.tenADay })
+    ]),
+    gameCard(gameKey, t),
+    el('p', { class: 'eyebrow', text: t.also }),
+    el('div', { class: 'also' }, others.map(function (k) {
+      return el('a', { href: storeLink(k) || GAMES[k].page }, [
+        el('img', { src: GAMES[k].icon, alt: '' }),
+        el('span', { text: GAMES[k].name + ' · ' + fmt(t.words, { n: GAMES[k].words }) })
+      ]);
+    })),
+    el('details', { class: 'all-types' }, [
+      el('summary', { text: t.allTypes }),
+      el('dl', {}, TYPES.reduce(function (list, k) {
+        list.push(el('dt', { class: k === typeKey ? 'mine' : '', text: t.types[k][0] }));
+        list.push(el('dd', { text: t.typeShort[k] }));
+        return list;
+      }, []))
+    ]),
+    el('p', { class: 'small', text: t.plan }),
+    el('div', { class: 'actions' }, [
+      shareBtn,
+      el('button', { class: 'cta secondary', type: 'button', text: t.retake, onclick: restart })
+    ])
+  );
+  window.scrollTo(0, 0);
+}
+
+document.querySelectorAll('.langs button').forEach(function (b) {
+  b.onclick = function () { setLang(b.getAttribute('data-lang')); };
+});
+setLang(pickLang());
+</script>
+</body>
+</html>
