@@ -33,6 +33,9 @@
     .timer { height: 10px; background: var(--panel); border-radius: 999px; overflow: hidden; margin: 0 0 20px; }
     .timer span { display: block; height: 100%; width: 100%; background: var(--orange); }
     .feedback { margin: 18px 0 0; color: #d7d7d2; }
+    .speed { display: inline-block; margin: 18px 0 0; padding: 10px 16px; border-radius: 14px; background: var(--lime); color: #0b0b11; font-weight: 900; animation: pop .35s cubic-bezier(.2, 1.6, .4, 1); }
+    .speed.slow { background: var(--violet); }
+    @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .result-type { font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: 1; letter-spacing: -.03em; margin: 6px 0 16px; color: var(--lime); }
     .fortune { font-size: 1.12rem; color: #e9e9e4; margin: 0 0 24px; }
     .why { list-style: none; padding: 0; margin: 0 0 28px; display: grid; gap: 10px; }
@@ -99,6 +102,24 @@
 
 // Set to '../get/tomato-escape/' once Tomato Escape is in the stores.
 var TOMATO_GET = null;
+
+// Google Analytics 4 measurement ID (looks like 'G-XXXXXXXXXX'). While null,
+// nothing is loaded and track() does nothing. Funnel events: quiz_view →
+// quiz_start → quiz_challenge → quiz_complete → quiz_download (plus quiz_share).
+var GA_ID = null;
+if (GA_ID) {
+  var ga = document.createElement('script');
+  ga.async = true;
+  ga.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+  document.head.appendChild(ga);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag('js', new Date());
+  window.gtag('config', GA_ID);
+}
+function track(name, params) {
+  if (window.gtag) window.gtag('event', name, Object.assign({ quiz_lang: lang }, params || {}));
+}
 
 var GAMES = {
   lt: { icon: '../assets/translator-icon.png', name: 'The Last Translator', words: 900, get: '../get/', page: '../the-last-translator/' },
@@ -167,6 +188,8 @@ var T = {
     challengeOpts: ['Dog', 'Cat', 'Bread', 'Door'],
     challengeRight: "You answered against a 5-second timer. That's how every round feels.",
     challengeMissed: "The timer got you. That's the skill nobody trains, until now.",
+    speedFast: '⚡ {s}s: faster than about {p}% of people',
+    speedSlow: "You're still faster than about {p}% of people. Speed comes with practice.",
     next: 'Next',
     funQ: 'Which sounds most like your kind of fun?',
     fun: ['Battling my friends, and winning.', 'A calm puzzle I can play anywhere.', 'An action adventure with a story.', "Honestly? Anything that doesn't feel like studying."],
@@ -265,6 +288,8 @@ var T = {
     challengeOpts: ['Dog', 'Cat', 'Bread', 'Door'],
     challengeRight: 'Respondiste con 5 segundos en el reloj. Así se siente cada ronda.',
     challengeMissed: 'El reloj te ganó. Esa es la habilidad que nadie entrena… hasta ahora.',
+    speedFast: '⚡ {s} s: más rápido que cerca del {p}% de las personas',
+    speedSlow: 'Aun así, eres más rápido que cerca del {p}% de las personas. La velocidad llega con práctica.',
     next: 'Siguiente',
     funQ: '¿Qué suena más a tu tipo de diversión?',
     fun: ['Pelear contra mis amigos, y ganar.', 'Un rompecabezas tranquilo que pueda jugar donde sea.', 'Una aventura de acción con historia.', 'La verdad, cualquier cosa que no se sienta como estudiar.'],
@@ -363,6 +388,8 @@ var T = {
     challengeOpts: ['Dog', 'Cat', 'Bread', 'Door'],
     challengeRight: 'Sumagot ka habang tumatakbo ang 5-segundong timer. Ganyan ang pakiramdam ng bawat round.',
     challengeMissed: 'Naunahan ka ng timer. Iyan ang skill na walang nagte-train… hanggang ngayon.',
+    speedFast: '⚡ {s} s: mas mabilis ka sa mga {p}% ng mga tao',
+    speedSlow: 'Mas mabilis ka pa rin sa mga {p}% ng mga tao. Bumibilis ka sa practice.',
     next: 'Susunod',
     funQ: 'Alin ang pinaka-kagaya ng trip mo?',
     fun: ['Lumaban sa barkada, at manalo.', 'Isang chill na puzzle na pwede kahit saan.', 'Isang action adventure na may kwento.', 'Totoo? Kahit ano basta hindi parang nag-aaral.'],
@@ -500,7 +527,7 @@ function renderIntro() {
     el('h1', { text: t.title }),
     el('p', { class: 'lede', text: t.intro }),
     typeList(null),
-    el('p', {}, [el('button', { class: 'cta', type: 'button', text: t.start, onclick: next })])
+    el('p', {}, [el('button', { class: 'cta', type: 'button', text: t.start, onclick: function () { track('quiz_start'); next(); } })])
   );
 }
 
@@ -530,6 +557,15 @@ function renderStruggle() {
 function renderFun() { var t = T[lang]; question(t.funQ, t.fun, function (i) { state.fun = FUN[i]; }); }
 function renderTime() { var t = T[lang]; question(t.timeQ, t.times, function (i) { state.time = i; }); }
 
+// Estimated "faster than X% of people" from the answer time on a fixed scale
+// (no real player data yet): 1 second or less → 95%, sliding to 40% at the
+// 5-second limit. Wrong answers and timeouts get the 40% floor.
+function speedPercent(right, secs) {
+  if (!right) return 40;
+  var p = 95 - (secs - 1) / 4 * 55;
+  return Math.round(Math.max(40, Math.min(95, p)));
+}
+
 function renderChallenge() {
   var t = T[lang];
   var timerFill = el('span');
@@ -540,6 +576,7 @@ function renderChallenge() {
   });
   // Shuffle the answers so "Dog" isn't always first.
   var shuffled = buttons.slice().sort(function () { return Math.random() - 0.5; });
+  var speed = el('p', { class: 'speed', hidden: '' });
   var done = false;
   function finish(right, i) {
     if (done) return;
@@ -550,6 +587,14 @@ function renderChallenge() {
     if (!right && i !== undefined) buttons[i].classList.add('wrong');
     buttons.forEach(function (b) { b.disabled = true; });
     feedback.textContent = right ? t.challengeRight : t.challengeMissed;
+    var secs = (Date.now() - startedAt) / 1000;
+    var pct = speedPercent(right, secs);
+    var shown = secs.toFixed(1);
+    if (lang === 'es') shown = shown.replace('.', ',');
+    speed.textContent = fmt(right ? t.speedFast : t.speedSlow, { s: shown, p: pct });
+    speed.classList.toggle('slow', !right);
+    speed.hidden = false;
+    track('quiz_challenge', { correct: right, seconds: Math.round(secs * 10) / 10, faster_than: pct });
     nextBtn.hidden = false;
     nextBtn.focus();
   }
@@ -558,6 +603,7 @@ function renderChallenge() {
     el('h2', { text: t.challengeQ }),
     el('div', { class: 'timer' }, [timerFill]),
     el('div', { class: 'options' }, shuffled),
+    speed,
     feedback,
     el('p', {}, [nextBtn])
   );
@@ -648,11 +694,13 @@ function renderResult() {
 
   bar.style.width = '100%';
   stepLabel.textContent = '';
+  track('quiz_complete', { learner_type: typeKey, game: gameKey });
 
   var shareBtn = el('button', { class: 'cta secondary', type: 'button', text: t.share });
   shareBtn.onclick = function () {
     var url = location.origin + location.pathname + '?lang=' + lang;
     var text = fmt(t.shareText, { type: type[0] });
+    track('quiz_share', { learner_type: typeKey });
     if (navigator.share) navigator.share({ title: document.title, text: text, url: url }).catch(function () {});
     else if (navigator.clipboard) navigator.clipboard.writeText(text + ' ' + url).then(function () { shareBtn.textContent = t.copied; });
   };
@@ -698,10 +746,20 @@ function renderResult() {
   window.scrollTo(0, 0);
 }
 
+// Count every tap on a store link (main button, "also great for you", "start
+// today while you wait") as a download click for that game.
+screen.addEventListener('click', function (e) {
+  var a = e.target.closest('a[href*="/get/"]');
+  if (!a) return;
+  var href = a.getAttribute('href');
+  track('quiz_download', { game: /wordbust/.test(href) ? 'wb' : /tomato/.test(href) ? 'tomato' : 'lt' });
+});
+
 document.querySelectorAll('.langs button').forEach(function (b) {
   b.onclick = function () { setLang(b.getAttribute('data-lang')); };
 });
 setLang(pickLang());
+track('quiz_view');
 </script>
 </body>
 </html>
