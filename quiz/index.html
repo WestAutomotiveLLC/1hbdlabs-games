@@ -52,6 +52,7 @@
     .also a { display: flex; gap: 12px; align-items: center; text-decoration: none; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px; }
     .also img { width: 40px; height: 40px; border-radius: 10px; }
     .small { color: var(--muted); font-size: .9rem; }
+    .privacy-note { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); font-size: .78rem; }
     .mix { display: grid; gap: 10px; margin: 0 0 26px; }
     .mix-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-weight: 700; }
     .mix-row .pct { color: var(--muted); }
@@ -91,6 +92,7 @@
     <div class="progress" aria-hidden="true"><span id="bar"></span></div>
     <p class="step-label" id="stepLabel"></p>
     <main id="screen" aria-live="polite"></main>
+    <p class="small privacy-note"><span id="privacyText"></span> <a href="https://policies.google.com/technologies/partner-sites" id="privacyLink"></a></p>
   </div>
 
 <script>
@@ -106,7 +108,7 @@ var TOMATO_GET = null;
 // Google Analytics 4 measurement ID (looks like 'G-XXXXXXXXXX'). While null,
 // nothing is loaded and track() does nothing. Funnel events: quiz_view →
 // quiz_start → quiz_challenge → quiz_complete → quiz_download (plus quiz_share).
-var GA_ID = null;
+var GA_ID = 'G-YH3DQZF1QB';
 if (GA_ID) {
   var ga = document.createElement('script');
   ga.async = true;
@@ -246,7 +248,9 @@ var T = {
     share: 'Share my result',
     shareText: "I'm {type}. What's your learning type?",
     copied: 'Link copied!',
-    retake: 'Retake the quiz'
+    retake: 'Retake the quiz',
+    privacy: "This quiz uses Google Analytics to count visits, finished quizzes, results and download taps. We don't ask for your name or email.",
+    privacyLink: 'How Google uses this data'
   },
 
   es: {
@@ -346,7 +350,9 @@ var T = {
     share: 'Compartir mi resultado',
     shareText: 'Soy «{type}». ¿Cuál es tu forma de aprender?',
     copied: '¡Enlace copiado!',
-    retake: 'Repetir el quiz'
+    retake: 'Repetir el quiz',
+    privacy: 'Este quiz usa Google Analytics para contar visitas, quizzes terminados, resultados y toques en descargar. No te pedimos tu nombre ni tu correo.',
+    privacyLink: 'Cómo usa Google estos datos'
   },
 
   tl: {
@@ -446,7 +452,9 @@ var T = {
     share: 'I-share ang resulta ko',
     shareText: 'Ako ay «{type}». Ano ang learner type mo?',
     copied: 'Nakopya ang link!',
-    retake: 'Ulitin ang quiz'
+    retake: 'Ulitin ang quiz',
+    privacy: 'Gumagamit ang quiz na ito ng Google Analytics para bilangin ang mga bisita, natapos na quiz, resulta at pag-tap sa download. Hindi namin hinihingi ang pangalan o email mo.',
+    privacyLink: 'Paano ginagamit ng Google ang data na ito'
   }
 };
 
@@ -486,6 +494,8 @@ function setLang(l) {
   document.querySelectorAll('.langs button').forEach(function (b) {
     b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === l));
   });
+  document.getElementById('privacyText').textContent = T[l].privacy;
+  document.getElementById('privacyLink').textContent = T[l].privacyLink;
   restart();
 }
 
