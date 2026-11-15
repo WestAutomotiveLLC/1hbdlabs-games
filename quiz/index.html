@@ -57,10 +57,21 @@
     .mix-row:first-child .mix-bar span { background: var(--lime); }
     details.all-types { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 16px; margin: 0 0 26px; }
     details.all-types summary { cursor: pointer; font-weight: 800; }
-    details.all-types dl { margin: 12px 0 0; }
-    details.all-types dt { font-weight: 800; margin-top: 10px; }
-    details.all-types dt.mine { color: var(--lime); }
-    details.all-types dd { margin: 2px 0 0; color: #d7d7d2; }
+    details.all-types .type-list { margin: 12px 0 0; }
+    .avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex: none; border: 2px solid var(--line); }
+    .avatar.lg { width: 104px; height: 104px; border-color: var(--lime); }
+    .avatar.sm { width: 36px; height: 36px; }
+    .avatar.placeholder { display: grid; place-items: center; background: linear-gradient(135deg, var(--violet), #5b3bd6); font-size: 1.5rem; }
+    .avatar.lg.placeholder { font-size: 2.8rem; }
+    .avatar.sm.placeholder { font-size: 1.05rem; }
+    .type-list { list-style: none; padding: 0; margin: 20px 0 26px; display: grid; gap: 10px; }
+    .type-list li { display: flex; gap: 14px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 10px 14px; }
+    .type-list strong { display: block; line-height: 1.2; }
+    .type-list span { color: var(--muted); font-size: .92rem; line-height: 1.35; }
+    .type-list li.mine { border-color: var(--lime); }
+    .result-head { display: flex; gap: 18px; align-items: center; margin: 6px 0 16px; }
+    .result-head .result-type { margin: 0; }
+    .mix-row .who { display: flex; gap: 10px; align-items: center; }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -80,8 +91,8 @@
   </div>
 
 <script>
-// Quiz flow: [family (es/tl only)] → level → struggle (depends on level) →
-// 5-second challenge → kind of fun → time → result.
+// Quiz flow: the five learner types → 5-second challenge → [family (es/tl
+// only)] → level → struggle (depends on level) → kind of fun → time → result.
 // The result type comes from the struggle answer; the game comes from the
 // level (serious learners get WordBust or The Last Translator) and the kind of
 // fun. Bored, casual learners lean to Tomato Escape.
@@ -95,11 +106,23 @@ var GAMES = {
   tomato: { icon: '../assets/tomato-icon.png', name: 'Tomato Escape', words: 250, get: TOMATO_GET, page: '../tomato-escape/' }
 };
 
+// Type keys → names: comeback = Better With Friends, gamebrain = Loves
+// Learning Not School, fresh = The Science Learner, hidden = Determined But
+// Forgetful, pressure = Perfect Until Pressure. null shows an emoji instead
+// of a photo until a licensed one is added.
+var TYPE_IMG = {
+  comeback: '../assets/type-friends.jpg',
+  gamebrain: '../assets/type-school.jpg',
+  fresh: null,
+  hidden: '../assets/type-forgetful.jpg',
+  pressure: '../assets/type-pressure.jpg'
+};
+
 // Each struggle answer: [learning type, feature it points to]
 var STRUGGLE = {
-  A: [['comeback', 'friends'], ['gamebrain', 'game'], ['fresh', 'useful'], ['fresh', 'small']],
-  B: [['hidden', 'spelling'], ['hidden', 'both'], ['hidden', 'errors'], ['comeback', 'duels']],
-  C: [['hidden', 'speed'], ['comeback', 'words'], ['comeback', 'friends'], ['hidden', 'errors']],
+  A: [['comeback', 'friends'], ['gamebrain', 'game'], ['gamebrain', 'useful'], ['fresh', 'small']],
+  B: [['fresh', 'spelling'], ['hidden', 'both'], ['hidden', 'errors'], ['comeback', 'duels']],
+  C: [['hidden', 'speed'], ['fresh', 'words'], ['comeback', 'friends'], ['fresh', 'errors']],
   D: [['pressure', 'pressure'], ['pressure', 'speed'], ['pressure', 'recall'], ['pressure', 'all']]
 };
 var FUN = ['battle', 'puzzle', 'adventure', 'anything'];
@@ -109,9 +132,9 @@ var T = {
   en: {
     stepOf: 'Question {n} of {t}',
     eyebrow: '30-second quiz',
-    title: "What's your Spanish learning type?",
-    intro: "Answer a few quick questions. We'll tell you why Spanish hasn't stuck yet, and what will.",
-    start: 'Start the quiz',
+    title: 'Which Spanish learner are you?',
+    intro: "Most people are a mix of these 5. Take the 30-second quiz to find yours, and why Spanish hasn't stuck yet.",
+    start: 'Find out which one I am',
     family: null,
     level: 'Be honest: what happens when someone actually speaks Spanish to you?',
     levels: [
@@ -152,18 +175,18 @@ var T = {
     who: {},
     typeLabel: 'Your learning type',
     types: {
-      comeback: ['The Comeback Learner', "You didn't fail at Spanish. Boring apps failed you. You quit when it stopped being fun, and nobody noticed you were gone. This time you need a reason to come back every day, and someone who notices when you don't."],
-      gamebrain: ['The Game Brain', "You learn by doing, not by memorizing lists. The second it feels like homework, your brain checks out. Disguise the learning and you'll be surprised how much sticks."],
-      fresh: ['The Fresh Start', "You don't need a textbook. You need a first step small enough to take today, and words you'll actually get to use."],
-      hidden: ['The Hidden Speaker', "You understand more than you show. The words are in there; they just won't come out on time. You don't need more words. You need faster ones."],
-      pressure: ['The Pressure Learner', "Your Spanish is good, until it matters. To truly own a language you have to recall words fast, under pressure. That's the one thing you've never practiced. This is the perfect practice for you."]
+      comeback: ['Better With Friends', "You've started before, and you'll start again. You don't quit because it's hard; you quit because you're doing it alone and nobody notices when you stop. Put a friend on the other side of your streak and watch what happens."],
+      gamebrain: ['Loves Learning, Not School', "You're curious. You just can't stand being taught like it's homework. The second it feels like class, your brain checks out. Disguise the learning as play and you'll be surprised how much sticks."],
+      fresh: ['The Science Learner', "You don't want to be told you're doing great. You want to see exactly what you missed, why, and what to fix next. Give you a clear plan and real feedback and you'll outwork everyone."],
+      hidden: ['Determined But Forgetful', "You keep showing up, and the same words keep slipping away. It's not effort you're missing. You need the words you forget to come back again and again until they stick for good."],
+      pressure: ['Perfect Until Pressure', "Your Spanish is good, until it matters. To truly own a language you have to recall words fast, under pressure. That's the one thing you've never practiced. This is the perfect practice for you."]
     },
     typeShort: {
-      comeback: 'Started before, needs a reason to keep going.',
-      gamebrain: 'Learns by playing, not memorizing.',
-      fresh: 'Ready for a first step that fits in a day.',
-      hidden: 'Understands more than they can say, yet.',
-      pressure: 'Strong, but words vanish when it counts.'
+      comeback: 'Relearning. Quits alone, sticks with a crew.',
+      gamebrain: 'Curious, but homework-style studying kills it.',
+      fresh: 'Needs to see exactly what they missed.',
+      hidden: 'Keeps trying. The same words keep slipping.',
+      pressure: 'Knows it, but words vanish when it counts.'
     },
     mixLabel: 'Your learner mix',
     allTypes: 'See all 5 learner types',
@@ -206,9 +229,9 @@ var T = {
   es: {
     stepOf: 'Pregunta {n} de {t}',
     eyebrow: 'Quiz de 30 segundos',
-    title: '¿Cuál es tu forma de aprender inglés?',
-    intro: 'Responde unas preguntas rápidas. Te diremos por qué el inglés no se te ha quedado, y qué sí va a funcionar.',
-    start: 'Empezar el quiz',
+    title: '¿Qué tipo de aprendiz de inglés eres?',
+    intro: 'La mayoría es una mezcla de estos 5. Haz el quiz de 30 segundos y descubre el tuyo, y por qué el inglés no se te ha quedado.',
+    start: 'Descubrir cuál soy',
     family: '¿A quién quieres entender sin pedirle que te repita?',
     families: ['A mis hijos o nietos, que me contestan en inglés.', 'A mi familia en Estados Unidos.', 'A la familia de mi pareja.', 'A la gente del trabajo.'],
     level: 'Sé sincero: ¿qué pasa cuando alguien te habla en inglés?',
@@ -250,18 +273,18 @@ var T = {
     who: { kids: 'tus hijos o nietos', abroad: 'tu familia en Estados Unidos', partner: 'la familia de tu pareja', work: 'la gente del trabajo' },
     typeLabel: 'Tu tipo de aprendiz',
     types: {
-      comeback: ['El Que Regresa', 'No fallaste tú con el inglés: te fallaron las apps aburridas. Lo dejaste cuando dejó de ser divertido y nadie notó que te fuiste. Esta vez necesitas una razón para volver cada día, y alguien que note cuando no vuelves. Piensa en {who}: ahí está tu razón.'],
-      gamebrain: ['Mente de Jugador', 'Aprendes haciendo, no memorizando listas. En cuanto algo se siente como tarea, tu mente se desconecta. Disfraza el aprendizaje y te sorprenderá todo lo que se te queda.'],
-      fresh: ['Nuevo Comienzo', 'No necesitas un libro de texto. Necesitas un primer paso tan pequeño que puedas darlo hoy, y palabras que de verdad vas a usar con {who}.'],
-      hidden: ['Hablante Escondido', 'Entiendes más de lo que demuestras. Las palabras están ahí; solo que no salen a tiempo. Cuando {who} te habla, la respuesta te llega tarde. No necesitas más palabras: necesitas palabras más rápidas.'],
-      pressure: ['Aprendiz Bajo Presión', 'Tu inglés es bueno… hasta que importa. Para dominar un idioma de verdad tienes que recordar las palabras rápido y bajo presión. Es lo único que nunca has practicado. Esta es la práctica perfecta para ti.']
+      comeback: ['Mejor Con Amigos', 'Ya empezaste antes, y vas a volver a empezar. No lo dejas porque sea difícil; lo dejas porque estás solo y nadie nota cuando paras. Pon a alguien del otro lado de tu racha. Piensa en {who}: ahí está tu razón.'],
+      gamebrain: ['Le Gusta Aprender, No La Escuela', 'Eres curioso; lo que no soportas es que te enseñen como si fuera tarea. En cuanto se siente como clase, tu mente se desconecta. Disfraza el aprendizaje de juego y te sorprenderá todo lo que se te queda.'],
+      fresh: ['Aprendiz Científico', 'No quieres que te digan que vas muy bien. Quieres ver exactamente qué fallaste, por qué y qué corregir. Con un plan claro y resultados reales, nadie trabaja más duro que tú. Y cada palabra te acerca a {who}.'],
+      hidden: ['Decidido Pero Olvidadizo', 'Sigues intentándolo, y las mismas palabras se te siguen escapando. No te falta esfuerzo. Necesitas que las palabras que olvidas regresen una y otra vez hasta quedarse. Cuando {who} te habla, quieres que la respuesta llegue a tiempo.'],
+      pressure: ['Perfecto Hasta La Presión', 'Tu inglés es bueno… hasta que importa. Para dominar un idioma de verdad tienes que recordar las palabras rápido y bajo presión. Es lo único que nunca has practicado. Esta es la práctica perfecta para ti.']
     },
     typeShort: {
-      comeback: 'Ya empezó antes y necesita una razón para seguir.',
-      gamebrain: 'Aprende jugando, no memorizando.',
-      fresh: 'Listo para un primer paso que quepa en un día.',
-      hidden: 'Entiende más de lo que puede decir… por ahora.',
-      pressure: 'Habla bien, pero las palabras se van cuando más importa.'
+      comeback: 'Está reaprendiendo. Solo lo deja; con amigos sigue.',
+      gamebrain: 'Curioso, pero estudiar como tarea lo apaga.',
+      fresh: 'Necesita ver exactamente qué falló.',
+      hidden: 'Sigue intentando; las mismas palabras se le escapan.',
+      pressure: 'Lo sabe, pero las palabras se van cuando más importa.'
     },
     mixLabel: 'Tu mezcla de aprendiz',
     allTypes: 'Ver los 5 tipos de aprendiz',
@@ -305,8 +328,8 @@ var T = {
     stepOf: 'Tanong {n} sa {t}',
     eyebrow: '30-segundong quiz',
     title: 'Anong klase ka ng English learner?',
-    intro: 'Sagutin ang ilang mabilis na tanong. Sasabihin namin kung bakit hindi pa tumatatak ang English mo, at kung ano ang gagana.',
-    start: 'Simulan ang quiz',
+    intro: 'Karamihan ay halo ng 5 na ito. Sagutin ang 30-segundong quiz para malaman kung alin ka, at kung bakit hindi pa tumatatak ang English mo.',
+    start: 'Alamin kung alin ako',
     family: 'Sino ang gusto mong maintindihan nang hindi na pinapaulit?',
     families: ['Ang mga anak o apo ko, na sumasagot sa English.', 'Ang pamilya ko sa abroad.', 'Ang pamilya ng partner ko.', 'Ang mga customer o boss ko.'],
     level: "Aminin mo: ano ang nangyayari kapag may kumausap sa'yo sa English?",
@@ -348,18 +371,18 @@ var T = {
     who: { kids: 'ang mga anak o apo mo', abroad: 'ang pamilya mo sa abroad', partner: 'ang pamilya ng partner mo', work: 'ang mga customer o boss mo' },
     typeLabel: 'Ang learner type mo',
     types: {
-      comeback: ['Ang Bumabalik', 'Hindi ikaw ang pumalya sa English. Pinalya ka ng mga boring na app. Tumigil ka nang hindi na masaya, at walang nakapansin. Ngayon kailangan mo ng dahilan para bumalik araw-araw, at taong makakapansin kapag hindi ka bumalik. Isipin mo {who}: sila ang dahilan mo.'],
-      gamebrain: ['Utak Gamer', 'Natututo ka sa paggawa, hindi sa pagme-memorize. Sa sandaling maging parang assignment, nawawala ang interes mo. Itago ang pag-aaral sa laro at magugulat ka kung gaano karami ang tatatak.'],
-      fresh: ['Bagong Simula', 'Hindi mo kailangan ng libro. Kailangan mo ng unang hakbang na kaya mong gawin ngayon, at mga salitang talagang magagamit mo kasama {who}.'],
-      hidden: ['Tagong Speaker', "Mas marami kang naiintindihan kaysa ipinapakita mo. Nandiyan ang mga salita; hindi lang lumalabas sa tamang oras. Kapag may kumausap sa'yo, huli nang dumarating ang sagot. Hindi mo kailangan ng mas maraming salita. Kailangan mo ng mas mabibilis."],
-      pressure: ['Pressure Learner', "Magaling ang English mo… hanggang sa mahalagang sandali. Para tunay mong ma-master ang isang wika, kailangan mong maalala ang mga salita nang mabilis at may pressure. Iyan ang hindi mo pa napa-practice. Ito ang perpektong practice para sa'yo."]
+      comeback: ['Mas Magaling Kasama Ang Barkada', 'Nasubukan mo na dati, at susubukan mo ulit. Hindi ka tumitigil dahil mahirap; tumitigil ka dahil mag-isa ka at walang nakakapansin kapag huminto ka. Maglagay ng kasama sa kabilang dulo ng streak mo. Isipin mo {who}: sila ang dahilan mo.'],
+      gamebrain: ['Mahilig Matuto, Hindi Sa School', 'Curious ka; ayaw mo lang turuan na parang assignment. Kapag parang klase na, nawawala ang interes mo. Itago ang pag-aaral sa laro at magugulat ka kung gaano karami ang tatatak.'],
+      fresh: ['Ang Science Learner', 'Ayaw mong sabihan na magaling ka na. Gusto mong makita kung ano mismo ang mali mo, bakit, at ano ang aayusin. Bigyan ka ng malinaw na plano at totoong feedback, at walang makakatalo sa sipag mo.'],
+      hidden: ['Determinado Pero Makakalimutin', 'Patuloy kang sumusubok, at patuloy ding nawawala ang parehong mga salita. Hindi sipag ang kulang sa\'yo. Kailangan mong bumalik-balik ang mga salitang nakakalimutan mo hanggang tumatak na talaga.'],
+      pressure: ['Perfect Hanggang May Pressure', "Magaling ang English mo… hanggang sa mahalagang sandali. Para tunay mong ma-master ang isang wika, kailangan mong maalala ang mga salita nang mabilis at may pressure. Iyan ang hindi mo pa napa-practice. Ito ang perpektong practice para sa'yo."]
     },
     typeShort: {
-      comeback: 'Nasubukan na dati, kailangan ng dahilan para magtuloy.',
-      gamebrain: 'Natututo sa paglalaro, hindi sa pagme-memorize.',
-      fresh: 'Handa sa unang hakbang na kasya sa isang araw.',
-      hidden: 'Mas marami ang naiintindihan kaysa nasasabi… sa ngayon.',
-      pressure: 'Magaling, pero nawawala ang salita kapag mahalaga na.'
+      comeback: 'Nag-aaral ulit. Tumitigil mag-isa, tuloy kapag may kasama.',
+      gamebrain: 'Curious, pero ayaw ng pag-aaral na parang assignment.',
+      fresh: 'Kailangang makita kung ano mismo ang mali.',
+      hidden: 'Sumusubok pa rin; nawawala ang parehong salita.',
+      pressure: 'Alam niya, pero nawawala ang salita kapag mahalaga na.'
     },
     mixLabel: 'Ang learner mix mo',
     allTypes: 'Tingnan ang 5 learner type',
@@ -442,7 +465,7 @@ function setLang(l) {
 function restart() {
   clearInterval(challengeTimer);
   state = { family: null, level: null, struggle: null, challenge: null, fun: null, time: null };
-  steps = (T[lang].family ? ['family'] : []).concat(['level', 'struggle', 'challenge', 'fun', 'time']);
+  steps = ['challenge'].concat(T[lang].family ? ['family'] : [], ['level', 'struggle', 'fun', 'time']);
   stepIndex = -1;
   renderIntro();
 }
@@ -453,6 +476,22 @@ function setProgress() {
   stepLabel.textContent = stepIndex >= 0 && stepIndex < total ? fmt(T[lang].stepOf, { n: stepIndex + 1, t: total }) : '';
 }
 
+function avatar(type, size) {
+  var cls = 'avatar' + (size ? ' ' + size : '');
+  if (TYPE_IMG[type]) return el('img', { class: cls, src: TYPE_IMG[type], alt: '' });
+  return el('span', { class: cls + ' placeholder', 'aria-hidden': 'true', text: '🔬' });
+}
+
+function typeList(mine) {
+  var t = T[lang];
+  return el('ul', { class: 'type-list' }, TYPES.map(function (k) {
+    return el('li', { class: k === mine ? 'mine' : '' }, [
+      avatar(k),
+      el('div', {}, [el('strong', { text: t.types[k][0] }), el('span', { text: t.typeShort[k] })])
+    ]);
+  }));
+}
+
 function renderIntro() {
   var t = T[lang];
   setProgress();
@@ -460,6 +499,7 @@ function renderIntro() {
     el('p', { class: 'eyebrow', text: t.eyebrow }),
     el('h1', { text: t.title }),
     el('p', { class: 'lede', text: t.intro }),
+    typeList(null),
     el('p', {}, [el('button', { class: 'cta', type: 'button', text: t.start, onclick: next })])
   );
 }
@@ -531,7 +571,7 @@ function renderChallenge() {
 
 // Every answer nudges the five learner types; the struggle answer counts most,
 // so it is always the top type. Returns the top three as rounded percentages.
-var TYPES = ['comeback', 'gamebrain', 'fresh', 'hidden', 'pressure'];
+var TYPES = ['pressure', 'comeback', 'gamebrain', 'hidden', 'fresh'];
 function learnerMix() {
   var s = { comeback: 0, gamebrain: 0, fresh: 0, hidden: 0, pressure: 0 };
   function add(type, n) { s[type] += n; }
@@ -619,14 +659,14 @@ function renderResult() {
 
   screen.replaceChildren(
     el('p', { class: 'eyebrow', text: t.typeLabel }),
-    el('p', { class: 'result-type', text: type[0] }),
+    el('div', { class: 'result-head' }, [avatar(typeKey, 'lg'), el('p', { class: 'result-type', text: type[0] })]),
     el('p', { class: 'fortune', text: fortune }),
     el('p', { class: 'eyebrow', text: t.mixLabel }),
     el('div', { class: 'mix' }, learnerMix().map(function (m) {
       var fill = el('span');
       fill.style.width = m[1] + '%';
       return el('div', { class: 'mix-row' }, [
-        el('span', { text: t.types[m[0]][0] }),
+        el('span', { class: 'who' }, [avatar(m[0], 'sm'), el('span', { text: t.types[m[0]][0] })]),
         el('span', { class: 'pct', text: m[1] + '%' }),
         el('div', { class: 'mix-bar' }, [fill])
       ]);
@@ -647,11 +687,7 @@ function renderResult() {
     })),
     el('details', { class: 'all-types' }, [
       el('summary', { text: t.allTypes }),
-      el('dl', {}, TYPES.reduce(function (list, k) {
-        list.push(el('dt', { class: k === typeKey ? 'mine' : '', text: t.types[k][0] }));
-        list.push(el('dd', { text: t.typeShort[k] }));
-        return list;
-      }, []))
+      typeList(typeKey)
     ]),
     el('p', { class: 'small', text: t.plan }),
     el('div', { class: 'actions' }, [
