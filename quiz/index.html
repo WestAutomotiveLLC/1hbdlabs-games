@@ -98,9 +98,8 @@
 <script>
 // Quiz flow: the five learner types → 5-second challenge → [family (es/tl
 // only)] → level → struggle (depends on level) → kind of fun → time → result.
-// The result type comes from the struggle answer; the game comes from the
-// level (serious learners get WordBust or The Last Translator) and the kind of
-// fun. Bored, casual learners lean to Tomato Escape.
+// The result type comes from the struggle answer, and the game from the type
+// (see chooseGame).
 
 // Set to '../get/tomato-escape/' once Tomato Escape is in the stores.
 var TOMATO_GET = null;
@@ -651,12 +650,21 @@ function learnerMix() {
   return top.map(function (t, i) { return [t, pcts[i]]; });
 }
 
+// Each learner type gets the game whose features fit it:
+// Better With Friends → The Last Translator (add friends, friend streaks, battles)
+// Loves Learning, Not School → Tomato Escape (an adventure game first)
+// Determined But Forgetful → The Last Translator
+// The Science Learner → The Last Translator if they like battles, else WordBust
+//   (both count missed words and star them automatically)
+// Perfect Until Pressure → WordBust (all three games help; the others are listed)
 function chooseGame() {
-  var serious = state.level === 'C' || state.level === 'D';
-  var bored = state.struggle[0] === 'gamebrain';
-  if (!serious && (bored || state.fun === 'adventure' || state.fun === 'anything')) return 'tomato';
-  if (state.fun === 'battle' || state.fun === 'adventure') return 'lt';
-  return 'wb';
+  switch (state.struggle[0]) {
+    case 'comeback': return 'lt';
+    case 'gamebrain': return 'tomato';
+    case 'hidden': return 'lt';
+    case 'fresh': return state.fun === 'battle' || state.fun === 'adventure' ? 'lt' : 'wb';
+    default: return 'wb';
+  }
 }
 
 function storeLink(key) {
