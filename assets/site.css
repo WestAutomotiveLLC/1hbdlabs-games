@@ -194,3 +194,9 @@ footer p { margin: 6px 0 0; }
   .quiz-banner { grid-template-columns: 1fr; gap: 18px; padding: 24px; }
   .quiz-banner .button { justify-self: start; }
 }
+
+/* language switcher (EN · ES · FIL · FR · KO) */
+.lang-switch { display: flex; gap: 4px; flex-wrap: wrap; }
+.lang-switch a { color: var(--muted); text-decoration: none; font-weight: 800; font-size: .75rem; border: 1px solid var(--line); border-radius: 999px; padding: 4px 9px; }
+.lang-switch a:hover { color: var(--ink); }
+.lang-switch a[aria-current="true"] { color: #12130d; background: var(--lime); border-color: var(--lime); }

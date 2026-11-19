@@ -40,8 +40,12 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #start,#over{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 .card{width:100%;max-width:440px;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:22px;
   padding:22px;display:grid;gap:14px;box-shadow:0 24px 70px rgba(0,0,0,.5);backdrop-filter:blur(10px)}
-.logo{font-family:var(--display);font-weight:800;font-size:clamp(44px,12vw,58px);line-height:.85;margin:0;letter-spacing:-.01em}
+.logo{font-family:var(--display);font-weight:800;font-size:clamp(34px,10vw,58px);line-height:.85;margin:0;letter-spacing:-.01em;white-space:nowrap}
 .logo span{display:inline-block}
+.logo-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.streak-badge{flex-shrink:0;display:grid;justify-items:center;background:var(--ink-2);border:1.5px solid #ff9f4a;border-radius:16px;padding:6px 10px;min-width:56px}
+.streak-badge b{font:800 24px var(--display);line-height:1;color:#ffd9a8}
+.streak-badge small{font-size:10px;color:var(--muted);letter-spacing:.04em;text-align:center}
 .tag{margin:0;color:var(--muted);font-size:15px;line-height:1.45}
 .field{display:grid;gap:6px;min-width:0}
 .field label{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -107,7 +111,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 
 /* ---------- HUD ---------- */
 .hud{position:fixed;z-index:10}
-#hudL{top:calc(12px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
+#hudL{top:calc(12px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));max-width:calc(100% - 84px);display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
+.pill.fire{border-color:#ff9f4a;color:#ffd9a8}
 .pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font:700 15px var(--display);white-space:nowrap}
 .pill .k{color:var(--muted);font-weight:600;margin-right:4px}
 #lb{top:calc(56px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));background:var(--panel);
@@ -118,6 +123,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 #lb .h{font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
 #muteBtn{top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));background:var(--panel);
   border:1px solid var(--line);border-radius:999px;padding:6px 12px;font:600 13px var(--body);cursor:pointer}
+#muteBtn{width:40px;height:40px;padding:0;display:grid;place-items:center;font-size:18px;line-height:1}
 #banner{top:calc(56px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);max-width:min(460px,calc(100% - 32px));
   background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 14px;font:700 16px var(--display);text-align:center;pointer-events:none}
 #banner.good{border-color:var(--good)} #banner.bad{border-color:var(--bad)}
@@ -157,7 +163,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .d-status.good{color:var(--good)} .d-status.bad{color:var(--bad)}
 
 @media (max-width:560px){
-  #lb{min-width:120px;font-size:12px}
+  #lb{min-width:0;font-size:11px;padding:6px 8px;top:calc(60px + env(safe-area-inset-top,0px));opacity:.85}
+  #lb .row:nth-child(n+5){display:none}
+  .pill{font-size:13px;padding:3px 10px}
   #lb .row:nth-child(n+6){display:none}
   .d-opts button{min-height:46px;font-size:15px}
 }
@@ -167,15 +175,15 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 <canvas id="game" aria-label="Language.io arena"></canvas>
 
 <div class="hud" id="hudL" hidden>
-  <div class="pill"><span class="k">Size</span><span id="hudSize">20</span></div>
-  <div class="pill" id="hudStreak"></div>
+  <div class="pill"><span class="k" data-i18n="size">Size</span><span id="hudSize">20</span></div>
+  <div class="pill fire" id="hudStreak"></div>
   <div class="pill" id="hudLesson"></div>
 </div>
 <div class="hud" id="lb" hidden></div>
-<button class="hud" id="muteBtn" type="button">Sound on</button>
+<button class="hud" id="muteBtn" type="button" aria-label="Sound on">🔊</button>
 <div class="hud" id="banner" hidden></div>
 <div class="hud" id="revChip" hidden></div>
-<div class="hud" id="bossTag" hidden>La Sombra is near</div>
+<div class="hud" id="bossTag" hidden data-i18n="bossNear">La Sombra is near</div>
 
 <div id="duel" hidden role="dialog" aria-label="Word duel">
   <div class="d-top">
@@ -195,33 +203,33 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 
 <div class="screen" id="start">
   <div class="card">
-    <h1 class="logo" id="logo">Language.io</h1>
-    <p class="tag">Eat or get eaten. Every bite is a word duel in the language you're learning.</p>
-    <div class="field"><label for="nameIn">Name</label><input id="nameIn" maxlength="14" autocomplete="off"></div>
+    <div class="logo-row"><h1 class="logo" id="logo">Language.io</h1><div class="streak-badge" id="streakBadge" aria-live="polite"></div></div>
+    <p class="tag" data-i18n="tagline">Eat or get eaten. Every bite is a word duel in the language you're learning.</p>
+    <div class="field"><label for="nameIn" data-i18n="name">Name</label><input id="nameIn" maxlength="14" autocomplete="off"></div>
     <div class="row2">
-      <div class="field"><label for="speakIn">I speak</label><select id="speakIn"></select></div>
-      <div class="field"><label for="learnIn">I'm learning</label><select id="learnIn"></select></div>
+      <div class="field"><label for="speakIn" data-i18n="speak">I speak</label><select id="speakIn"></select></div>
+      <div class="field"><label for="learnIn" data-i18n="learning">I'm learning</label><select id="learnIn"></select></div>
     </div>
     <div class="field">
-      <label for="streakIn">Daily streak <span class="hint">(test setting)</span></label>
+      <label for="streakIn"><span data-i18n="streak">Daily streak</span> <span class="hint" data-i18n="streakTest">(test setting)</span></label>
       <select id="streakIn">
-        <option value="0">0 days</option><option value="10">10 days</option><option value="50">50 days</option>
-        <option value="100">100 days</option><option value="500">500 days</option>
+        <option value="-1" data-i18n="realStreak">My streak</option><option value="0" data-i18n="days" data-n="0">0 days</option><option value="10" data-i18n="days" data-n="10">10 days</option><option value="50" data-i18n="days" data-n="50">50 days</option>
+        <option value="100" data-i18n="days" data-n="100">100 days</option><option value="500" data-i18n="days" data-n="500">500 days</option>
       </select>
       <p class="note" id="streakNote"></p>
     </div>
     <div class="today"><div class="lbl" id="todayLbl">Lesson 1</div><div class="chips" id="chips"></div><p class="note" id="courseNote"></p></div>
     <p class="err" id="err" hidden></p>
     <div class="btnrow">
-      <button class="btn-ghost" id="practiceBtn" type="button">Practice words</button>
-      <button class="btn-primary" id="playBtn" type="button">Play survival</button>
+      <button class="btn-ghost" id="practiceBtn" type="button" data-i18n="practiceBtn">Practice words</button>
+      <button class="btn-primary" id="playBtn" type="button" data-i18n="playBtn">Play survival</button>
     </div>
     <ul class="how">
-      <li>Steer with your mouse or finger. Eat floating letters to grow.</li>
-      <li style="--dot:var(--bubble)">Bump any blob to start a one-word duel. Whoever answers first wins.</li>
-      <li style="--dot:var(--ember)">The winner takes up to their own size from the loser. Run out of size and you're eaten, so big blobs are deadly. Big losers barely get knocked back, so small blobs can hit them again.</li>
-      <li style="--dot:var(--good)">Blobs near you show what a duel is worth: green is what you'd win, red is what you'd lose.</li>
-      <li style="--dot:var(--thorn)">Small blobs can hide in thornbushes. A big blob can smash a bush to expose who's hiding, but it cracks open: it loses 20% of its size, slows down, and loses more in duels for a few seconds. Bushes grow back after 40 seconds.</li>
+      <li data-i18n="how1">Steer with your mouse or finger. Eat floating letters to grow.</li>
+      <li style="--dot:var(--bubble)" data-i18n="how2">Bump any blob to start a one-word duel. Whoever answers first wins.</li>
+      <li style="--dot:var(--ember)" data-i18n="how3">The winner takes up to their own size from the loser. Run out of size and you're eaten, so big blobs are deadly. Big losers barely get knocked back, so small blobs can hit them again.</li>
+      <li style="--dot:var(--good)" data-i18n="how4">Blobs near you show what a duel is worth: green is what you'd win, red is what you'd lose.</li>
+      <li style="--dot:var(--thorn)" data-i18n="how5">Small blobs can hide in thornbushes. A big blob can smash a bush to expose who's hiding, but it cracks open: it loses 20% of its size, slows down, and loses more in duels for a few seconds. Bushes grow back after 40 seconds.</li>
     </ul>
   </div>
 </div>
@@ -229,16 +237,16 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 <div class="screen" id="practice" hidden>
   <div class="card">
     <div class="p-head">
-      <h2 class="p-title">Practice</h2>
-      <button class="btn-ghost p-close" id="pClose" type="button">Back</button>
+      <h2 class="p-title" data-i18n="practiceTitle">Practice</h2>
+      <button class="btn-ghost p-close" id="pClose" type="button" data-i18n="back">Back</button>
     </div>
     <div class="p-controls">
-      <div class="field"><label for="pScope">Words</label>
-        <select id="pScope"><option value="lesson">This lesson</option><option value="all">All lessons so far</option></select></div>
-      <div class="field"><label for="pOrder">Order</label>
-        <select id="pOrder"><option value="course">Course order</option><option value="shuffle">Shuffled</option><option value="hard">Hardest first</option><option value="reverse">Newest first</option></select></div>
-      <div class="field"><label for="pFront">Show first</label>
-        <select id="pFront"><option value="learn">Word to learn</option><option value="speak">Meaning</option></select></div>
+      <div class="field"><label for="pScope" data-i18n="words">Words</label>
+        <select id="pScope"><option value="lesson" data-i18n="thisLesson">This lesson</option><option value="all" data-i18n="allSoFar">All lessons so far</option></select></div>
+      <div class="field"><label for="pOrder" data-i18n="order">Order</label>
+        <select id="pOrder"><option value="course" data-i18n="courseOrder">Course order</option><option value="shuffle" data-i18n="shuffled">Shuffled</option><option value="hard" data-i18n="hardest">Hardest first</option><option value="reverse" data-i18n="newest">Newest first</option></select></div>
+      <div class="field"><label for="pFront" data-i18n="showFirst">Show first</label>
+        <select id="pFront"><option value="learn" data-i18n="wordToLearn">Word to learn</option><option value="speak" data-i18n="meaning">Meaning</option></select></div>
     </div>
     <button class="p-card" id="pCard" type="button" aria-live="polite">
       <span class="p-lang" id="pLang"></span>
@@ -248,37 +256,37 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     </button>
     <div class="p-count" id="pCount"></div>
     <div class="btnrow">
-      <button class="btn-ghost p-again" id="pAgain" type="button">Again</button>
-      <button class="btn-primary" id="pGot" type="button">Got it</button>
+      <button class="btn-ghost p-again" id="pAgain" type="button" data-i18n="again">Again</button>
+      <button class="btn-primary" id="pGot" type="button" data-i18n="gotIt">Got it</button>
     </div>
-    <p class="note">Space flips the card. Left arrow is Again, right arrow is Got it. Practice doesn't change your lesson progress; duels do.</p>
+    <p class="note" data-i18n="practiceNote">Space flips the card. Left arrow is Again, right arrow is Got it. Practice doesn't change your lesson progress; duels do.</p>
   </div>
 </div>
 
 <div id="moreGames" class="more" hidden>
-  <button class="more-btn" id="moreBtn" type="button" aria-expanded="false" aria-controls="morePanel">More 1HBDLabs games</button>
+  <button class="more-btn" id="moreBtn" type="button" aria-expanded="false" aria-controls="morePanel" data-i18n="moreBtn">More 1HBDLabs games</button>
   <div class="more-panel" id="morePanel" hidden>
-    <div class="more-head">More games by 1HBDLabs</div>
+    <div class="more-head" data-i18n="moreHead">More games by 1HBDLabs</div>
     <div class="more-list" id="moreList"></div>
-    <div class="more-foot"><a href="https://westautomotivellc.github.io/1hbdlabs-games/" target="_blank" rel="noopener">All games</a> · <a href="https://westautomotivellc.github.io/1hbdlabs-games/language-io/privacy/" target="_blank" rel="noopener">Privacy</a></div>
+    <div class="more-foot"><a href="https://westautomotivellc.github.io/1hbdlabs-games/" target="_blank" rel="noopener" data-i18n="allGames">All games</a> · <a href="https://westautomotivellc.github.io/1hbdlabs-games/language-io/privacy/" target="_blank" rel="noopener" data-i18n="privacy">Privacy</a></div>
   </div>
 </div>
 
-<div class="screen" id="adWait" hidden><div class="card" style="text-align:center;max-width:260px"><p class="tag">Loading a quick ad…</p></div></div>
+<div class="screen" id="adWait" hidden><div class="card" style="text-align:center;max-width:260px"><p class="tag" data-i18n="adLoading">Loading a quick ad…</p></div></div>
 
 <div class="screen" id="over" hidden>
   <div class="card">
     <h2 class="logo" style="font-size:40px" id="overTitle">Eaten</h2>
     <p class="tag" id="overSub"></p>
     <div class="stats">
-      <div class="stat"><div class="k">Peak size</div><div class="v" id="sPeak">0</div></div>
-      <div class="stat"><div class="k">Words right</div><div class="v" id="sWords">0</div></div>
-      <div class="stat"><div class="k">Duels won</div><div class="v" id="sDuels">0</div></div>
-      <div class="stat"><div class="k">Survived</div><div class="v" id="sTime">0s</div></div>
+      <div class="stat"><div class="k" data-i18n="peak">Peak size</div><div class="v" id="sPeak">0</div></div>
+      <div class="stat"><div class="k" data-i18n="wordsRight">Words right</div><div class="v" id="sWords">0</div></div>
+      <div class="stat"><div class="k" data-i18n="duelsWon">Duels won</div><div class="v" id="sDuels">0</div></div>
+      <div class="stat"><div class="k" data-i18n="survived">Survived</div><div class="v" id="sTime">0s</div></div>
     </div>
     <div class="btnrow">
-      <button class="btn-ghost" id="menuBtn" type="button">Settings</button>
-      <button class="btn-primary" id="againBtn" type="button">Play again</button>
+      <button class="btn-ghost" id="menuBtn" type="button" data-i18n="settingsBtn">Settings</button>
+      <button class="btn-primary" id="againBtn" type="button" data-i18n="playAgain">Play again</button>
     </div>
   </div>
 </div>
@@ -1199,8 +1207,267 @@ const LETTERS = {
 };
 function shuffle(arr, rnd=Math.random){for(let i=arr.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
 
-let settings = {name:'You', speak:'en', learn:'es', streak:0, muted:false};
-try { const s = JSON.parse(localStorage.getItem('languageio-settings') || 'null'); if (s) Object.assign(settings, s); } catch (e) {}
+/* ================= interface translations =================
+   The interface follows the player's "I speak" language. On first launch that defaults to the device or
+   browser language (or the phone app's locale, passed in as window.LANGUAGEIO_DEVICE_LANG). */
+const I18N = {
+  en: {
+    tagline: "Eat or get eaten. Every bite is a word duel in the language you're learning.",
+    name: "Name", speak: "I speak", learning: "I'm learning", streak: "Daily streak", streakTest: "(test setting)",
+    realStreak: "My real streak", streakWord: "day streak",
+    days: "{n} days", looksOnly: "Looks only, no power: {x}.",
+    noLook: "No look yet", goldRing: "Gold ring", blueFlame: "Blue flame", greenFlame: "Big green flame", purpleFlame: "Purple flame + boss music",
+    lessonHead: "{lang} lesson {n} of {total} · {k}/{m} learned",
+    courseFirst: "Answer each word right twice in duels to learn it. Learn all 10 to open the next lesson.",
+    courseReview: "Duels also review words from lessons you've finished ({n}).",
+    pickTwo: "Pick two different languages.",
+    practiceBtn: "Practice words", playBtn: "Play survival",
+    how1: "Steer with your mouse. On a phone, put your thumb down anywhere and slide it a little, like a joystick; lift it and you keep going. Eat floating letters to grow.",
+    how2: "Bump any blob to start a one-word duel. Whoever answers first wins.",
+    how3: "The winner takes up to their own size from the loser. Run out of size and you're eaten, so big blobs are deadly. Big losers barely get knocked back, so small blobs can hit them again.",
+    how4: "Blobs near you show what a duel is worth: green is what you'd win, red is what you'd lose.",
+    how5: "Small blobs can hide in thornbushes. A big blob can smash a bush to expose who's hiding, but it cracks open: it loses 20% of its size, slows down, and loses more in duels for a few seconds. Bushes grow back after 40 seconds.",
+    practiceTitle: "Practice", back: "Back", words: "Words", thisLesson: "This lesson", allSoFar: "All lessons so far",
+    order: "Order", courseOrder: "Course order", shuffled: "Shuffled", hardest: "Hardest first", newest: "Newest first",
+    showFirst: "Show first", wordToLearn: "Word to learn", meaning: "Meaning",
+    tapFlip: "Tap to flip", tapAgain: "Tap to go again", deckDone: "Deck finished", cards: "{n} cards", countOf: "{a} of {b}",
+    repeats: " · repeats queued", again: "Again", gotIt: "Got it", lessonN: "Lesson {n}",
+    practiceNote: "Space flips the card. Left arrow is Again, right arrow is Got it. Practice doesn't change your lesson progress; duels do.",
+    moreBtn: "More 1HBDLabs games", moreHead: "More games by 1HBDLabs", allGames: "All games", privacy: "Privacy",
+    comingSoon: "Coming soon", seeIt: "See it", adLoading: "Loading a quick ad…",
+    eaten: "Eaten", eatenBy: "Eaten by {name}", overBoss: "La Sombra got you. Listen for the music next time.",
+    overSub: "Every duel is a word. Every word makes you faster.",
+    peak: "Peak size", wordsRight: "Words right", duelsWon: "Duels won", survived: "Survived", settingsBtn: "Settings", playAgain: "Play again",
+    size: "Size", streakDays: "{n}-day streak", biggest: "Biggest blobs", soundOn: "Sound on", soundOff: "Sound off", bossNear: "La Sombra is near",
+    cracked: "CRACKED", smashed: "BUSH SMASHED", exposed: "EXPOSED", ate: "ATE {name}",
+    missed: "{name} missed!", bounce: "Nobody got it. You bounce apart.", youAte: "You ate {name}!",
+    youTook: "You took {n} from {name}", tookFromYou: "{name} took {n} from you",
+    youAttacked: "You attacked {name}", attackedYou: "{name} attacked you",
+    winEat: "Win: you eat them (+{n})", win: "Win: +{n}", loseEaten: "Lose: you get eaten", lose: "Lose: -{n}",
+    answerFirst: "Answer first.", getReady: "Get ready…", thinking: "{name} is thinking…",
+    unlocked: "Lesson {a} complete! Lesson {b} unlocked", notQuite: "Not quite. Waiting on your opponent…",
+    youFirst: "You answered first!", oppFirst: "{name} answered first",
+    timeUp: "Time's up. Nobody takes anything.", bothMissed: "Both missed. Nobody takes anything.",
+    startBanner: "Eat letters to grow. Bump smaller blobs to duel.",
+    eatYou: "EATS YOU", eatThem: "EAT +{n}", mins: "{m}m {s}s", secs: "{s}s",
+    langs: {en: "English", es: "Spanish", fil: "Filipino", fr: "French", ko: "Korean"}
+  },
+  es: {
+    tagline: "Come o te comen. Cada mordida es un duelo de palabras en el idioma que estás aprendiendo.",
+    name: "Nombre", speak: "Hablo", learning: "Estoy aprendiendo", streak: "Racha diaria", streakTest: "(ajuste de prueba)",
+    realStreak: "Mi racha real", streakWord: "días de racha",
+    days: "{n} días", looksOnly: "Solo apariencia, sin poder: {x}.",
+    noLook: "Sin apariencia aún", goldRing: "Anillo dorado", blueFlame: "Llama azul", greenFlame: "Gran llama verde", purpleFlame: "Llama morada + música de jefe",
+    lessonHead: "{lang}: lección {n} de {total} · {k}/{m} aprendidas",
+    courseFirst: "Responde bien cada palabra dos veces en duelos para aprenderla. Aprende las 10 para abrir la siguiente lección.",
+    courseReview: "Los duelos también repasan palabras de las lecciones que ya terminaste ({n}).",
+    pickTwo: "Elige dos idiomas diferentes.",
+    practiceBtn: "Practicar palabras", playBtn: "Jugar supervivencia",
+    how1: "Muévete con el ratón. En el teléfono, pon el pulgar en cualquier parte y deslízalo un poco, como un joystick; si lo levantas, sigues avanzando. Come letras flotantes para crecer.",
+    how2: "Choca con cualquier blob para empezar un duelo de una palabra. Gana quien responda primero.",
+    how3: "El ganador le quita al perdedor hasta su propio tamaño. Si te quedas sin tamaño, te comen, así que los blobs grandes son peligrosos. Los grandes que pierden apenas retroceden, así que los pequeños pueden volver a atacarlos.",
+    how4: "Los blobs cerca de ti muestran cuánto vale un duelo: en verde lo que ganarías, en rojo lo que perderías.",
+    how5: "Los blobs pequeños pueden esconderse en arbustos de espinas. Un blob grande puede destrozar un arbusto para descubrir quién se esconde, pero se agrieta: pierde el 20% de su tamaño, se vuelve lento y pierde más en duelos durante unos segundos. Los arbustos vuelven a crecer después de 40 segundos.",
+    practiceTitle: "Práctica", back: "Volver", words: "Palabras", thisLesson: "Esta lección", allSoFar: "Todas las lecciones hasta ahora",
+    order: "Orden", courseOrder: "Orden del curso", shuffled: "Mezcladas", hardest: "Las más difíciles primero", newest: "Las más nuevas primero",
+    showFirst: "Mostrar primero", wordToLearn: "Palabra a aprender", meaning: "Significado",
+    tapFlip: "Toca para voltear", tapAgain: "Toca para empezar de nuevo", deckDone: "Mazo terminado", cards: "{n} tarjetas", countOf: "{a} de {b}",
+    repeats: " · repeticiones en cola", again: "Otra vez", gotIt: "Me la sé", lessonN: "Lección {n}",
+    practiceNote: "Espacio voltea la tarjeta. Flecha izquierda es Otra vez, flecha derecha es Me la sé. La práctica no cambia tu progreso de lecciones; los duelos sí.",
+    moreBtn: "Más juegos de 1HBDLabs", moreHead: "Más juegos de 1HBDLabs", allGames: "Todos los juegos", privacy: "Privacidad",
+    comingSoon: "Próximamente", seeIt: "Verlo", adLoading: "Cargando un anuncio corto…",
+    eaten: "Te comieron", eatenBy: "Te comió {name}", overBoss: "La Sombra te atrapó. La próxima vez, escucha la música.",
+    overSub: "Cada duelo es una palabra. Cada palabra te hace más rápido.",
+    peak: "Tamaño máximo", wordsRight: "Palabras correctas", duelsWon: "Duelos ganados", survived: "Sobreviviste", settingsBtn: "Ajustes", playAgain: "Jugar otra vez",
+    size: "Tamaño", streakDays: "Racha de {n} días", biggest: "Blobs más grandes", soundOn: "Sonido sí", soundOff: "Sonido no", bossNear: "La Sombra está cerca",
+    cracked: "AGRIETADO", smashed: "ARBUSTO DESTROZADO", exposed: "DESCUBIERTO", ate: "SE COMIÓ A {name}",
+    missed: "¡{name} falló!", bounce: "Nadie acertó. Rebotan.", youAte: "¡Te comiste a {name}!",
+    youTook: "Le quitaste {n} a {name}", tookFromYou: "{name} te quitó {n}",
+    youAttacked: "Atacaste a {name}", attackedYou: "{name} te atacó",
+    winEat: "Ganas: te lo comes (+{n})", win: "Ganas: +{n}", loseEaten: "Pierdes: te comen", lose: "Pierdes: -{n}",
+    answerFirst: "Responde primero.", getReady: "Prepárate…", thinking: "{name} está pensando…",
+    unlocked: "¡Lección {a} completada! Lección {b} desbloqueada", notQuite: "Casi. Esperando a tu rival…",
+    youFirst: "¡Respondiste primero!", oppFirst: "{name} respondió primero",
+    timeUp: "Se acabó el tiempo. Nadie se lleva nada.", bothMissed: "Los dos fallaron. Nadie se lleva nada.",
+    startBanner: "Come letras para crecer. Choca con blobs más pequeños para hacer duelos.",
+    eatYou: "TE COME", eatThem: "COMER +{n}", mins: "{m} min {s} s", secs: "{s} s",
+    langs: {en: "Inglés", es: "Español", fil: "Filipino", fr: "Francés", ko: "Coreano"}
+  },
+  fr: {
+    tagline: "Mange ou fais-toi manger. Chaque bouchée est un duel de mots dans la langue que tu apprends.",
+    name: "Nom", speak: "Je parle", learning: "J'apprends", streak: "Série quotidienne", streakTest: "(réglage de test)",
+    realStreak: "Ma vraie série", streakWord: "jours de série",
+    days: "{n} jours", looksOnly: "Apparence seulement, aucun pouvoir : {x}.",
+    noLook: "Pas encore d'apparence", goldRing: "Anneau doré", blueFlame: "Flamme bleue", greenFlame: "Grande flamme verte", purpleFlame: "Flamme violette + musique de boss",
+    lessonHead: "{lang} : leçon {n} sur {total} · {k}/{m} appris",
+    courseFirst: "Réponds juste deux fois à chaque mot en duel pour l'apprendre. Apprends les 10 pour ouvrir la leçon suivante.",
+    courseReview: "Les duels font aussi réviser les mots des leçons terminées ({n}).",
+    pickTwo: "Choisis deux langues différentes.",
+    practiceBtn: "S'entraîner", playBtn: "Jouer en survie",
+    how1: "Dirige avec la souris. Sur téléphone, pose le pouce n'importe où et fais-le glisser un peu, comme un joystick ; lève-le et tu continues tout droit. Mange les lettres qui flottent pour grandir.",
+    how2: "Touche n'importe quel blob pour lancer un duel d'un mot. Le premier qui répond gagne.",
+    how3: "Le gagnant prend au perdant jusqu'à sa propre taille. Si tu n'as plus de taille, tu es mangé : les gros blobs sont dangereux. Les gros perdants reculent à peine, donc les petits peuvent les frapper à nouveau.",
+    how4: "Les blobs proches de toi montrent ce que vaut un duel : en vert ce que tu gagnerais, en rouge ce que tu perdrais.",
+    how5: "Les petits blobs peuvent se cacher dans les buissons d'épines. Un gros blob peut écraser un buisson pour révéler qui s'y cache, mais il se fissure : il perd 20 % de sa taille, ralentit et perd plus en duel pendant quelques secondes. Les buissons repoussent après 40 secondes.",
+    practiceTitle: "Entraînement", back: "Retour", words: "Mots", thisLesson: "Cette leçon", allSoFar: "Toutes les leçons jusqu'ici",
+    order: "Ordre", courseOrder: "Ordre du cours", shuffled: "Mélangé", hardest: "Les plus difficiles d'abord", newest: "Les plus récents d'abord",
+    showFirst: "Afficher d'abord", wordToLearn: "Mot à apprendre", meaning: "Sens",
+    tapFlip: "Touche pour retourner", tapAgain: "Touche pour recommencer", deckDone: "Paquet terminé", cards: "{n} cartes", countOf: "{a} sur {b}",
+    repeats: " · répétitions en attente", again: "Encore", gotIt: "Je sais", lessonN: "Leçon {n}",
+    practiceNote: "Espace retourne la carte. Flèche gauche = Encore, flèche droite = Je sais. L'entraînement ne change pas ta progression ; les duels, si.",
+    moreBtn: "Plus de jeux 1HBDLabs", moreHead: "Plus de jeux par 1HBDLabs", allGames: "Tous les jeux", privacy: "Confidentialité",
+    comingSoon: "Bientôt", seeIt: "Voir", adLoading: "Chargement d'une courte pub…",
+    eaten: "Mangé", eatenBy: "Mangé par {name}", overBoss: "La Sombra t'a eu. Écoute la musique la prochaine fois.",
+    overSub: "Chaque duel est un mot. Chaque mot te rend plus rapide.",
+    peak: "Taille max", wordsRight: "Mots justes", duelsWon: "Duels gagnés", survived: "Survie", settingsBtn: "Réglages", playAgain: "Rejouer",
+    size: "Taille", streakDays: "Série de {n} jours", biggest: "Plus gros blobs", soundOn: "Son activé", soundOff: "Son coupé", bossNear: "La Sombra est proche",
+    cracked: "FISSURÉ", smashed: "BUISSON ÉCRASÉ", exposed: "RÉVÉLÉ", ate: "A MANGÉ {name}",
+    missed: "{name} s'est trompé !", bounce: "Personne n'a trouvé. Vous rebondissez.", youAte: "Tu as mangé {name} !",
+    youTook: "Tu as pris {n} à {name}", tookFromYou: "{name} t'a pris {n}",
+    youAttacked: "Tu as attaqué {name}", attackedYou: "{name} t'a attaqué",
+    winEat: "Victoire : tu le manges (+{n})", win: "Victoire : +{n}", loseEaten: "Défaite : tu es mangé", lose: "Défaite : -{n}",
+    answerFirst: "Réponds en premier.", getReady: "Prépare-toi…", thinking: "{name} réfléchit…",
+    unlocked: "Leçon {a} terminée ! Leçon {b} débloquée", notQuite: "Pas tout à fait. On attend ton adversaire…",
+    youFirst: "Tu as répondu en premier !", oppFirst: "{name} a répondu en premier",
+    timeUp: "Temps écoulé. Personne ne prend rien.", bothMissed: "Vous vous êtes trompés tous les deux. Personne ne prend rien.",
+    startBanner: "Mange des lettres pour grandir. Touche des blobs plus petits pour les défier.",
+    eatYou: "TE MANGE", eatThem: "MANGER +{n}", mins: "{m} min {s} s", secs: "{s} s",
+    langs: {en: "Anglais", es: "Espagnol", fil: "Filipino", fr: "Français", ko: "Coréen"}
+  },
+  ko: {
+    tagline: "먹거나 먹히거나. 한 입 한 입이 배우는 언어로 펼치는 단어 대결이에요.",
+    name: "이름", speak: "내 언어", learning: "배우는 언어", streak: "연속 학습일", streakTest: "(테스트 설정)",
+    realStreak: "내 실제 연속 기록", streakWord: "일 연속",
+    days: "{n}일", looksOnly: "외형만 바뀌고 능력은 없어요: {x}.",
+    noLook: "아직 외형 없음", goldRing: "금색 고리", blueFlame: "파란 불꽃", greenFlame: "큰 초록 불꽃", purpleFlame: "보라 불꽃 + 보스 음악",
+    lessonHead: "{lang} 레슨 {n}/{total} · {k}/{m}개 익힘",
+    courseFirst: "대결에서 각 단어를 두 번 맞히면 익힌 거예요. 10개를 모두 익히면 다음 레슨이 열려요.",
+    courseReview: "대결에서는 끝낸 레슨({n}개)의 단어도 복습해요.",
+    pickTwo: "서로 다른 두 언어를 고르세요.",
+    practiceBtn: "단어 연습", playBtn: "서바이벌 시작",
+    how1: "마우스로 움직이세요. 휴대폰에서는 아무 곳에나 엄지를 대고 조이스틱처럼 살짝 밀면 돼요. 손을 떼도 계속 그 방향으로 가요. 떠다니는 글자를 먹으면 커져요.",
+    how2: "아무 블롭과 부딪히면 단어 하나로 대결이 시작돼요. 먼저 맞힌 쪽이 이겨요.",
+    how3: "이긴 쪽은 진 쪽에게서 자기 크기만큼까지 가져가요. 크기가 바닥나면 먹히니까 큰 블롭은 위험해요. 큰 블롭은 져도 거의 밀려나지 않아서, 작은 블롭이 다시 공격할 수 있어요.",
+    how4: "가까운 블롭 위에 대결의 가치가 보여요. 초록은 이기면 얻는 양, 빨강은 지면 잃는 양이에요.",
+    how5: "작은 블롭은 가시덤불에 숨을 수 있어요. 큰 블롭은 덤불을 부숴 숨은 블롭을 드러낼 수 있지만, 금이 가서 크기의 20%를 잃고 느려지며 몇 초 동안 대결에서 더 많이 잃어요. 덤불은 40초 뒤에 다시 자라요.",
+    practiceTitle: "연습", back: "뒤로", words: "단어", thisLesson: "이번 레슨", allSoFar: "지금까지의 모든 레슨",
+    order: "순서", courseOrder: "코스 순서", shuffled: "섞기", hardest: "어려운 단어 먼저", newest: "최신 단어 먼저",
+    showFirst: "먼저 보기", wordToLearn: "배울 단어", meaning: "뜻",
+    tapFlip: "탭해서 뒤집기", tapAgain: "탭해서 다시 하기", deckDone: "카드 끝", cards: "카드 {n}장", countOf: "{a} / {b}",
+    repeats: " · 반복 대기 중", again: "다시", gotIt: "알아요", lessonN: "레슨 {n}",
+    practiceNote: "스페이스는 카드 뒤집기, 왼쪽 화살표는 다시, 오른쪽 화살표는 알아요예요. 연습은 레슨 진도에 영향이 없고, 대결만 반영돼요.",
+    moreBtn: "1HBDLabs 게임 더 보기", moreHead: "1HBDLabs의 다른 게임", allGames: "모든 게임", privacy: "개인정보",
+    comingSoon: "출시 예정", seeIt: "보기", adLoading: "짧은 광고를 불러오는 중…",
+    eaten: "먹혔어요", eatenBy: "{name}에게 먹혔어요", overBoss: "라 솜브라에게 잡혔어요. 다음엔 음악에 귀 기울이세요.",
+    overSub: "대결 하나가 단어 하나. 단어 하나하나가 당신을 더 빠르게 만들어요.",
+    peak: "최대 크기", wordsRight: "맞힌 단어", duelsWon: "이긴 대결", survived: "생존 시간", settingsBtn: "설정", playAgain: "다시 하기",
+    size: "크기", streakDays: "{n}일 연속", biggest: "가장 큰 블롭", soundOn: "소리 켬", soundOff: "소리 끔", bossNear: "라 솜브라가 가까이 있어요",
+    cracked: "금 감", smashed: "덤불 부서짐", exposed: "들킴", ate: "{name} 먹음",
+    missed: "{name} 오답!", bounce: "아무도 못 맞혔어요. 서로 튕겨 나가요.", youAte: "{name}을(를) 먹었어요!",
+    youTook: "{name}에게서 {n} 가져왔어요", tookFromYou: "{name}이(가) {n} 가져갔어요",
+    youAttacked: "{name}을(를) 공격했어요", attackedYou: "{name}이(가) 공격했어요",
+    winEat: "이기면: 잡아먹기 (+{n})", win: "이기면: +{n}", loseEaten: "지면: 먹혀요", lose: "지면: -{n}",
+    answerFirst: "먼저 맞히세요.", getReady: "준비하세요…", thinking: "{name}이(가) 생각 중…",
+    unlocked: "레슨 {a} 완료! 레슨 {b} 열림", notQuite: "아쉬워요. 상대를 기다리는 중…",
+    youFirst: "먼저 맞혔어요!", oppFirst: "{name}이(가) 먼저 맞혔어요",
+    timeUp: "시간 끝. 아무도 가져가지 않아요.", bothMissed: "둘 다 틀렸어요. 아무도 가져가지 않아요.",
+    startBanner: "글자를 먹고 커지세요. 작은 블롭과 부딪혀 대결하세요.",
+    eatYou: "먹혀요", eatThem: "먹기 +{n}", mins: "{m}분 {s}초", secs: "{s}초",
+    langs: {en: "영어", es: "스페인어", fil: "필리핀어", fr: "프랑스어", ko: "한국어"}
+  },
+  fil: {
+    tagline: "Kumain o kainin. Bawat kagat ay word duel sa wikang pinag-aaralan mo.",
+    name: "Pangalan", speak: "Wika ko", learning: "Pinag-aaralan ko", streak: "Araw-araw na streak", streakTest: "(test setting)",
+    realStreak: "Totoong streak ko", streakWord: "araw na streak",
+    days: "{n} araw", looksOnly: "Itsura lang, walang dagdag na lakas: {x}.",
+    noLook: "Wala pang itsura", goldRing: "Gintong singsing", blueFlame: "Asul na apoy", greenFlame: "Malaking berdeng apoy", purpleFlame: "Lilang apoy + boss music",
+    lessonHead: "{lang} lesson {n} ng {total} · {k}/{m} natutunan",
+    courseFirst: "Sagutin nang tama ang bawat salita nang dalawang beses sa duel para matutunan ito. Matutunan ang lahat ng 10 para mabuksan ang susunod na lesson.",
+    courseReview: "Nire-review din ng mga duel ang mga salita mula sa mga natapos mong lesson ({n}).",
+    pickTwo: "Pumili ng dalawang magkaibang wika.",
+    practiceBtn: "Mag-practice", playBtn: "Maglaro: survival",
+    how1: "Gumalaw gamit ang mouse. Sa phone, idiin ang hinlalaki kahit saan at i-slide nang kaunti, parang joystick; kapag inangat mo, tuloy pa rin ang galaw. Kainin ang mga lumulutang na letra para lumaki.",
+    how2: "Banggain ang kahit anong blob para magsimula ng duel na isang salita. Panalo ang unang makasagot.",
+    how3: "Kukunin ng panalo mula sa talo hanggang sa sarili niyang laki. Kapag naubos ang laki mo, kakainin ka, kaya delikado ang malalaking blob. Halos hindi tumatalsik ang malalaking natalo, kaya puwede silang atakihin ulit ng maliliit.",
+    how4: "Ipinapakita ng mga blob na malapit sa iyo ang halaga ng duel: berde ang makukuha mo, pula ang mawawala sa iyo.",
+    how5: "Puwedeng magtago ang maliliit na blob sa matinik na halaman. Kayang durugin ng malaking blob ang halaman para makita kung sino ang nagtatago, pero mabibitak siya: mawawala ang 20% ng laki niya, babagal siya, at mas malaki ang mawawala sa kanya sa duel nang ilang segundo. Tumutubo ulit ang halaman pagkalipas ng 40 segundo.",
+    practiceTitle: "Practice", back: "Bumalik", words: "Mga salita", thisLesson: "Lesson na ito", allSoFar: "Lahat ng lesson sa ngayon",
+    order: "Ayos", courseOrder: "Ayos ng kurso", shuffled: "Pinaghalo", hardest: "Pinakamahirap muna", newest: "Pinakabago muna",
+    showFirst: "Unang ipakita", wordToLearn: "Salitang aaralin", meaning: "Kahulugan",
+    tapFlip: "I-tap para baligtarin", tapAgain: "I-tap para ulitin", deckDone: "Tapos na ang deck", cards: "{n} card", countOf: "{a} ng {b}",
+    repeats: " · may mga uulitin", again: "Ulit", gotIt: "Alam ko na", lessonN: "Lesson {n}",
+    practiceNote: "Space para baligtarin ang card. Kaliwang arrow ay Ulit, kanang arrow ay Alam ko na. Hindi binabago ng practice ang progreso mo sa lesson; ang mga duel lang.",
+    moreBtn: "Iba pang laro ng 1HBDLabs", moreHead: "Iba pang laro ng 1HBDLabs", allGames: "Lahat ng laro", privacy: "Privacy",
+    comingSoon: "Malapit na", seeIt: "Tingnan", adLoading: "Naglo-load ng maikling ad…",
+    eaten: "Nakain ka", eatenBy: "Kinain ka ni {name}", overBoss: "Nahuli ka ni La Sombra. Pakinggan ang music sa susunod.",
+    overSub: "Bawat duel ay isang salita. Bawat salita ay nagpapabilis sa iyo.",
+    peak: "Pinakamalaking laki", wordsRight: "Tamang salita", duelsWon: "Panalong duel", survived: "Tumagal", settingsBtn: "Settings", playAgain: "Maglaro ulit",
+    size: "Laki", streakDays: "{n}-araw na streak", biggest: "Pinakamalalaking blob", soundOn: "May tunog", soundOff: "Walang tunog", bossNear: "Malapit si La Sombra",
+    cracked: "NABITAK", smashed: "NADUROG ANG HALAMAN", exposed: "NAKITA", ate: "KINAIN SI {name}",
+    missed: "Mali si {name}!", bounce: "Walang nakasagot. Tumalsik kayo.", youAte: "Kinain mo si {name}!",
+    youTook: "Kumuha ka ng {n} kay {name}", tookFromYou: "Kumuha si {name} ng {n} sa iyo",
+    youAttacked: "Inatake mo si {name}", attackedYou: "Inatake ka ni {name}",
+    winEat: "Panalo: kakainin mo siya (+{n})", win: "Panalo: +{n}", loseEaten: "Talo: kakainin ka", lose: "Talo: -{n}",
+    answerFirst: "Sumagot nang mauna.", getReady: "Humanda…", thinking: "Nag-iisip si {name}…",
+    unlocked: "Tapos na ang Lesson {a}! Bukas na ang Lesson {b}", notQuite: "Hindi pa tama. Hinihintay ang kalaban mo…",
+    youFirst: "Ikaw ang naunang sumagot!", oppFirst: "Naunang sumagot si {name}",
+    timeUp: "Ubos na ang oras. Walang kukunin.", bothMissed: "Parehong mali. Walang kukunin.",
+    startBanner: "Kumain ng letra para lumaki. Banggain ang mas maliliit na blob para mag-duel.",
+    eatYou: "KAKAININ KA", eatThem: "KAININ +{n}", mins: "{m}m {s}s", secs: "{s}s",
+    langs: {en: "Ingles", es: "Espanyol", fil: "Filipino", fr: "Pranses", ko: "Koreano"}
+  }
+};
+const NATIVE_NAMES = {en: "English", es: "Español", fil: "Filipino", fr: "Français", ko: "한국어"};
+function detectLang(){
+  let urlLang = null;
+  try { urlLang = new URLSearchParams(location.search).get('lang'); } catch (e) {}
+  const list = [urlLang, window.LANGUAGEIO_DEVICE_LANG].concat(navigator.languages || [], navigator.language || []).filter(Boolean);
+  for (const raw of list) {
+    const l = String(raw).toLowerCase();
+    if (l.startsWith('es')) return 'es';
+    if (l.startsWith('fr')) return 'fr';
+    if (l.startsWith('ko')) return 'ko';
+    if (l.startsWith('fil') || l.startsWith('tl')) return 'fil';
+    if (l.startsWith('en')) return 'en';
+  }
+  return 'en';
+}
+let UI = 'en';
+function t(key, vars){
+  let s = (I18N[UI] && I18N[UI][key]) ?? I18N.en[key] ?? key;
+  if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+  return s;
+}
+const langName = code => (I18N[UI].langs || I18N.en.langs)[code];
+function applyUI(){
+  document.documentElement.lang = UI === 'fil' ? 'fil' : UI;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n, el.dataset.n !== undefined ? {n: el.dataset.n} : null);
+  });
+}
+
+let settings = {name:'You', speak:'en', learn:'es', streak:-1, muted:false};
+/* ----- daily streak: one game on a calendar day counts. Miss a day and it starts over. ----- */
+const STREAK_KEY = 'languageio-daily-streak';
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function readStreak(){ try { return JSON.parse(localStorage.getItem(STREAK_KEY) || 'null') || {count: 0, last: ''}; } catch (e) { return {count: 0, last: ''}; } }
+function realStreak(){
+  const s = readStreak(), y = new Date(); y.setDate(y.getDate() - 1);
+  return s.last === dayKey() || s.last === dayKey(y) ? s.count : 0;
+}
+function bumpStreak(){
+  const s = readStreak(), today = dayKey(), y = new Date(); y.setDate(y.getDate() - 1);
+  if (s.last === today) return s.count;
+  const next = {count: s.last === dayKey(y) ? s.count + 1 : 1, last: today};
+  try { localStorage.setItem(STREAK_KEY, JSON.stringify(next)); } catch (e) {}
+  return next.count;
+}
+// The test menu can preview a look; 'My real streak' (-1) uses the real count.
+const effStreak = () => settings.streak >= 0 ? settings.streak : realStreak();
+let savedSettings = null;
+try { savedSettings = JSON.parse(localStorage.getItem('languageio-settings') || 'null'); } catch (e) {}
+if (savedSettings) Object.assign(settings, savedSettings);
+else { settings.speak = detectLang(); settings.learn = settings.speak === 'en' ? 'es' : 'en'; }
 if (!LANGS[settings.speak]) settings.speak = 'en';
 if (!LANGS[settings.learn]) settings.learn = 'es';
 function saveSettings(){ try { localStorage.setItem('languageio-settings', JSON.stringify(settings)); } catch (e) {} }
@@ -1385,7 +1652,7 @@ function buildWorld(){
   ents.push(makeBoss());
 }
 function spawnPlayer(){
-  player = mkEnt({isPlayer: true, mass: 20, name: settings.name || 'You', hue: 42, streak: settings.streak, immune: 3});
+  player = mkEnt({isPlayer: true, mass: 20, name: settings.name || 'You', hue: 42, streak: effStreak(), immune: 3});
   for (let k=0; k<60; k++) {
     const x = rand(300, WORLD-300), y = rand(300, WORLD-300);
     if (ents.every(e => e.mass < 60 || Math.hypot(e.x-x, e.y-y) > 650)) { player.x = x; player.y = y; break; }
@@ -1396,11 +1663,27 @@ function spawnPlayer(){
 
 /* ================= input ================= */
 const mouse = {x: 0, y: 0, active: false};
-const cv = $('game'), ctx = cv.getContext('2d');
-cv.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
-cv.addEventListener('pointerdown', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
-cv.addEventListener('pointerup', e => { if (e.pointerType === 'touch') mouse.active = false; });
-cv.addEventListener('pointercancel', () => { mouse.active = false; });
+const cv = $('game'); let ctx = cv.getContext('2d');
+// Mouse: the blob heads toward the pointer. Touch: an invisible thumb joystick. Put a thumb down anywhere and
+// slide it a little; the blob goes that way. Lift the thumb and it keeps cruising the same way, so you don't
+// have to keep a finger on the screen.
+const JOY_R = 55;
+const joy = {on: false, used: false, id: null, ax: 0, ay: 0, dx: 0, dy: 0, thr: 0};
+cv.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse') { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; joy.used = false; return; }
+  joy.on = true; joy.used = true; joy.id = e.pointerId; joy.ax = e.clientX; joy.ay = e.clientY;
+});
+cv.addEventListener('pointermove', e => {
+  if (e.pointerType === 'mouse') { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; joy.used = false; return; }
+  if (!joy.on || e.pointerId !== joy.id) return;
+  let dx = e.clientX - joy.ax, dy = e.clientY - joy.ay;
+  const d = Math.hypot(dx, dy);
+  if (d > JOY_R) { joy.ax += dx/d*(d - JOY_R); joy.ay += dy/d*(d - JOY_R); dx = dx/d*JOY_R; dy = dy/d*JOY_R; }  // the stick follows a thumb that slides too far
+  if (d > 6) { const n = Math.hypot(dx, dy); joy.dx = dx/n; joy.dy = dy/n; joy.thr = clamp(n / (JOY_R*0.7), 0, 1); }
+});
+const joyEnd = e => { if (e.pointerType !== 'mouse' && e.pointerId === joy.id) joy.on = false; };
+cv.addEventListener('pointerup', joyEnd);
+cv.addEventListener('pointercancel', joyEnd);
 addEventListener('keydown', e => { if (e.key >= '1' && e.key <= '4') answer(+e.key - 1); });
 
 let W = 0, H = 0, DPR = 1;
@@ -1461,9 +1744,12 @@ function moveStep(dt){
     if (e.duel) { e.vx = e.vy = 0; continue; }
     let dx = 0, dy = 0, thr = 1;
     if (e.isPlayer) {
-      const mx = mouse.x - W/2, my = mouse.y - H/2, d = Math.hypot(mx, my);
-      if (d > 1) { dx = mx/d; dy = my/d; }
-      thr = mouse.active ? clamp((d - 4)/(e.r*cam.z + 60), 0, 1) : 0;
+      if (joy.used) { dx = joy.dx; dy = joy.dy; thr = joy.thr; }
+      else {
+        const mx = mouse.x - W/2, my = mouse.y - H/2, d = Math.hypot(mx, my);
+        if (d > 1) { dx = mx/d; dy = my/d; }
+        thr = mouse.active ? clamp((d - 4)/(e.r*cam.z + 60), 0, 1) : 0;
+      }
     } else {
       botThink(e, dt);
       const tx = e.bot.tx - e.x, ty = e.bot.ty - e.y, d = Math.hypot(tx, ty);
@@ -1496,7 +1782,7 @@ function crack(e, b, nx, ny){
   }
   e.cracked = 6; e.slow = 2; e.bushCd = 2.5;
   burst(e.x, e.y, e.r, `hsl(${e.hue},80%,65%)`, 22);
-  addFloat(e.x, e.y - e.r - 10, 'CRACKED', '#d25cb6');
+  addFloat(e.x, e.y - e.r - 10, t('cracked'), '#d25cb6');
   if (near(e)) sfx.crack();
 }
 function bushStep(dt){
@@ -1528,8 +1814,8 @@ function smashBush(b, by){
   b.dead = true;
   regrow.push({t: T + BUSH_REGROW, x: b.x, y: b.y});
   burst(b.x, b.y, b.r, '#d25cb6', 34);
-  addFloat(b.x, b.y - b.r - 14, 'BUSH SMASHED', '#d25cb6');
-  for (const e of ents) if (e.hidden && Math.hypot(e.x-b.x, e.y-b.y) < b.r*1.2) { e.hidden = false; addFloat(e.x, e.y - e.r - 8, 'EXPOSED', '#ffc94a'); }
+  addFloat(b.x, b.y - b.r - 14, t('smashed'), '#d25cb6');
+  for (const e of ents) if (e.hidden && Math.hypot(e.x-b.x, e.y-b.y) < b.r*1.2) { e.hidden = false; addFloat(e.x, e.y - e.r - 8, t('exposed'), '#ffc94a'); }
 }
 function pelletStep(dt){
   const f = Math.pow(0.03, dt);
@@ -1620,7 +1906,7 @@ function register(du, side, ok){
   const r = du.round;
   if (r.done || side in r.ans) return;
   r.ans[side] = ok;
-  if (du.mine && side !== du.mine && !ok) setStatus(`${du[side].name} missed!`, 'good');
+  if (du.mine && side !== du.mine && !ok) setStatus(t('missed', {name: du[side].name}), 'good');
   if (ok) { roundOver(du, side, 'first'); return; }
   const other = side === 'att' ? 'def' : 'att';
   if (other in r.ans) roundOver(du, null, 'bothwrong');
@@ -1662,12 +1948,12 @@ function endDuel(du){
   let info = null;
   if (du.finish === 'none') {
     att.immune = def.immune = 1.0; separate(att, def);
-    if (du.mine) info = {msg: 'Nobody got it. You bounce apart.', good: null};
+    if (du.mine) info = {msg: t('bounce'), good: null};
   } else {
     const w = du[du.finish], l = du[du.finish === 'att' ? 'def' : 'att'];
     const res = takeFrom(w, l);
-    if (w.isPlayer) { stats.duels++; info = {msg: res.eaten ? `You ate ${l.name}!` : `You took ${res.amount} from ${l.name}`, good: true}; }
-    else if (l.isPlayer && !res.eaten) info = {msg: `${w.name} took ${res.amount} from you`, good: false};
+    if (w.isPlayer) { stats.duels++; info = {msg: res.eaten ? t('youAte', {name: l.name}) : t('youTook', {n: res.amount, name: l.name}), good: true}; }
+    else if (l.isPlayer && !res.eaten) info = {msg: t('tookFromYou', {name: w.name, n: res.amount}), good: false};
   }
   if (du.mine) {
     closeDuelUI();
@@ -1678,7 +1964,7 @@ function endDuel(du){
 function eliminate(l, killer){
   l.dead = true;
   burst(l.x, l.y, l.r, `hsl(${l.hue},80%,65%)`, 40);
-  if (killer) addFloat(killer.x, killer.y - killer.r - 10, `ATE ${l.name.toUpperCase()}`, '#46e09a');
+  if (killer) addFloat(killer.x, killer.y - killer.r - 10, t('ate', {name: l.name.toUpperCase()}), '#46e09a');
   if (l.isPlayer) gameOver(killer);
 }
 function bubblePush(dt){
@@ -1761,7 +2047,7 @@ function drawBlob(e){
   ctx.beginPath();
   for (let i=0; i<=N; i++) {
     const a = i/N*Math.PI*2;
-    const w = reduceMotion ? 0 : Math.sin(T*2.6 + a*3 + e.wob)*0.022 + Math.sin(T*4.1 - a*5 + e.wob*1.7)*0.014;
+    const w = (reduceMotion || e.round) ? 0 : Math.sin(T*2.6 + a*3 + e.wob)*0.022 + Math.sin(T*4.1 - a*5 + e.wob*1.7)*0.014;
     const rr = r*(1 + w), x = e.x + Math.cos(a)*rr, y = e.y + Math.sin(a)*rr;
     i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
   }
@@ -1789,6 +2075,7 @@ function drawBlob(e){
     ctx.save(); ctx.setLineDash([8, 8]); ctx.lineDashOffset = -T*40; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2/cam.z;
     ctx.beginPath(); ctx.arc(e.x, e.y, r + 8, 0, Math.PI*2); ctx.stroke(); ctx.restore();
   }
+  if (e.noLabel) return;
   const fs = Math.max(11, r*.36);
   ctx.font = `800 ${fs}px "Baloo 2", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.lineWidth = fs*.2; ctx.strokeStyle = 'rgba(10,12,30,.75)'; ctx.lineJoin = 'round';
@@ -1804,7 +2091,7 @@ function drawBlob(e){
     const col = e.streak >= 500 ? '#e9a6ff' : e.streak >= 100 ? '#7dffb0' : e.streak >= 50 ? '#9fd0ff' : '#ffc94a';
     const flameExtra = e.streak >= 50 ? e.r*(e.streak >= 500 ? .75 : e.streak >= 100 ? .6 : .34) + 8 : 6;
     const y = e.y + r + flameExtra + ss*.8;
-    const label = `${e.streak}-day streak`;
+    const label = t('streakDays', {n: e.streak});
     ctx.lineWidth = ss*.28; ctx.strokeStyle = 'rgba(10,12,30,.85)'; ctx.strokeText(label, e.x, y);
     ctx.fillStyle = col; ctx.fillText(label, e.x, y);
   }
@@ -1813,8 +2100,8 @@ function drawBlob(e){
 function drawStake(e){
   const gain = Math.round(takeAmount(player, e)), loss = takeAmount(e, player);
   const eats = gain >= Math.round(e.mass) - MIN_MASS, dies = player.mass - loss < MIN_MASS;
-  const g = eats ? `EAT +${Math.round(e.mass)}` : `+${gain}`;
-  const l = dies ? 'EATS YOU' : `-${Math.round(loss)}`;
+  const g = eats ? t('eatThem', {n: Math.round(e.mass)}) : `+${gain}`;
+  const l = dies ? t('eatYou') : `-${Math.round(loss)}`;
   const s = Math.max(12, 14/cam.z);
   ctx.font = `800 ${s}px "Inter", sans-serif`;
   const flameExtra = e.streak >= 50 ? e.r*(e.streak >= 500 ? .75 : e.streak >= 100 ? .6 : .34) + 8 : 4;
@@ -1933,6 +2220,13 @@ function render(){
   }
   ctx.globalAlpha = 1;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (joy.on && state === 'play') {
+    // a very faint ring where the thumb is, so players can tell the stick is there
+    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(joy.ax, joy.ay, JOY_R, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.14)';
+    ctx.beginPath(); ctx.arc(joy.ax + joy.dx*joy.thr*JOY_R*0.7, joy.ay + joy.dy*joy.thr*JOY_R*0.7, 16, 0, Math.PI*2); ctx.fill();
+  }
   if (bossVol > 0.02) {
     const g = ctx.createRadialGradient(W/2, H/2, Math.min(W, H)*.3, W/2, H/2, Math.max(W, H)*.75);
     g.addColorStop(0, 'rgba(60,0,90,0)'); g.addColorStop(1, `rgba(60,0,90,${bossVol*.65})`);
@@ -1947,16 +2241,16 @@ function openDuelUI(du){
   const me = du.mine, opp = du[me === 'att' ? 'def' : 'att'];
   const el = $('duel');
   const gain = Math.round(takeAmount(player, opp)), loss = takeAmount(opp, player);
-  const title = me === 'att' ? `You attacked ${opp.name}` : `${opp.name} attacked you`;
-  const winTxt = gain >= Math.round(opp.mass) - MIN_MASS ? `Win: you eat them (+${Math.round(opp.mass)})` : `Win: +${gain}`;
-  const loseTxt = player.mass - loss < MIN_MASS ? 'Lose: you get eaten' : `Lose: -${Math.round(loss)}`;
+  const title = me === 'att' ? t('youAttacked', {name: opp.name}) : t('attackedYou', {name: opp.name});
+  const winTxt = gain >= Math.round(opp.mass) - MIN_MASS ? t('winEat', {n: Math.round(opp.mass)}) : t('win', {n: gain});
+  const loseTxt = player.mass - loss < MIN_MASS ? t('loseEaten') : t('lose', {n: Math.round(loss)});
   $('dTitle').textContent = title;
-  $('dGoal').innerHTML = `Answer first. <b style="color:var(--good)">${winTxt}</b> · <b style="color:var(--bad)">${loseTxt}</b>`;
+  $('dGoal').innerHTML = `${esc(t('answerFirst'))} <b style="color:var(--good)">${esc(winTxt)}</b> · <b style="color:var(--bad)">${esc(loseTxt)}</b>`;
   $('dLang').textContent = `${CODES[settings.learn]} → ${CODES[settings.speak]}`;
   $('dPrompt').textContent = '…';
   optBtns.forEach(b => { b.disabled = true; b.className = ''; b.querySelector('span').textContent = ''; });
   $('dBar').style.transform = 'scaleX(1)';
-  renderPips(du); setStatus('Get ready…', '');
+  renderPips(du); setStatus(t('getReady'), '');
   el.hidden = false;
 }
 function renderPips(){ $('dPips').innerHTML = ''; }
@@ -1965,7 +2259,7 @@ function renderRound(du){
   $('dPrompt').textContent = q.prompt;
   optBtns.forEach((b, i) => { b.disabled = false; b.className = ''; b.querySelector('span').textContent = q.options[i]; });
   const opp = du[du.mine === 'att' ? 'def' : 'att'];
-  setStatus(`${opp.name} is thinking…`, '');
+  setStatus(t('thinking', {name: opp.name}), '');
   renderPips(du);
 }
 function answer(i){
@@ -1978,9 +2272,9 @@ function answer(i){
   if (ok) {
     stats.words++; sfx.right();
     const res = recordCorrect(du.round.q.ci);
-    if (res.unlocked) pendingLesson = `Lesson ${progress.lesson} complete! Lesson ${progress.lesson + 1} unlocked`;
+    if (res.unlocked) pendingLesson = t('unlocked', {a: progress.lesson, b: progress.lesson + 1});
     updateLessonPill();
-  } else { sfx.wrong(); setStatus('Not quite. Waiting on your opponent…', 'bad'); }
+  } else { sfx.wrong(); setStatus(t('notQuite'), 'bad'); }
   register(du, du.mine, ok);
 }
 function showRoundResult(du){
@@ -1989,27 +2283,27 @@ function showRoundResult(du){
   optBtns[q.correct].classList.add('right');
   renderPips(du);
   let msg, cls;
-  if (r.why === 'first') { const good = r.winner === me; cls = good ? 'good' : 'bad'; msg = good ? 'You answered first!' : `${opp.name} answered first`; if (!good && !(me in r.ans)) sfx.wrong(); }
-  else { cls = ''; msg = r.why === 'timeout' ? "Time's up. Nobody takes anything." : 'Both missed. Nobody takes anything.'; }
+  if (r.why === 'first') { const good = r.winner === me; cls = good ? 'good' : 'bad'; msg = good ? t('youFirst') : t('oppFirst', {name: opp.name}); if (!good && !(me in r.ans)) sfx.wrong(); }
+  else { cls = ''; msg = r.why === 'timeout' ? t('timeUp') : t('bothMissed'); }
   setStatus(`${msg}  ·  ${q.prompt} = ${q.answer}`, cls);
 }
 function setStatus(t, cls){ const s = $('dStatus'); s.textContent = t; s.className = 'd-status ' + (cls || ''); }
 function closeDuelUI(){ $('duel').hidden = true; }
 let bannerTimer = 0, pendingLesson = '';
 function updateLessonPill(){
-  $('hudLesson').innerHTML = `<span class="k">Lesson ${progress.lesson + 1}</span>${learnedCount()}/${lessonIdx(progress.lesson).length}`;
+  $('hudLesson').innerHTML = `<span class="k">${esc(t('lessonN', {n: progress.lesson + 1}))}</span>${learnedCount()}/${lessonIdx(progress.lesson).length}`;
 }
 function showBanner(msg, good){
   const b = $('banner'); b.textContent = msg; b.className = 'hud ' + (good === true ? 'good' : good === false ? 'bad' : ''); b.hidden = false;
   clearTimeout(bannerTimer); bannerTimer = setTimeout(() => { b.hidden = true; }, 3000);
 }
-function streakLabel(s){ return s >= 500 ? 'Purple flame + boss music' : s >= 100 ? 'Big green flame' : s >= 50 ? 'Blue flame' : s >= 10 ? 'Gold ring' : 'No look yet'; }
+function streakLabel(s){ return t(s >= 500 ? 'purpleFlame' : s >= 100 ? 'greenFlame' : s >= 50 ? 'blueFlame' : s >= 10 ? 'goldRing' : 'noLook'); }
 function updateHUD(){
   const playing = state === 'play' && player && !player.dead;
   $('hudL').hidden = !playing; $('lb').hidden = state === 'menu';
   if (playing) {
     $('hudSize').textContent = Math.round(player.mass);
-    $('hudStreak').textContent = `${settings.streak}-day streak`;
+    $('hudStreak').textContent = `🔥 ${effStreak()}`; $('hudStreak').title = t('streakDays', {n: effStreak()});
   }
   $('bossTag').hidden = !(playing && bossVol > 0.25);
   if (state !== 'menu') {
@@ -2017,59 +2311,74 @@ function updateHUD(){
     const rows = sorted.slice(0, 8).map((e, i) => `<div class="row${e === player ? ' me' : ''}"><span>${i+1}</span><span class="n">${esc(e.name)}</span><span>${Math.round(e.mass)}</span></div>`);
     const idx = player ? sorted.indexOf(player) : -1;
     if (idx >= 8) rows.push(`<div class="row me"><span>${idx+1}</span><span class="n">${esc(player.name)}</span><span>${Math.round(player.mass)}</span></div>`);
-    $('lb').innerHTML = `<div class="h">Biggest blobs</div>` + rows.join('');
+    $('lb').innerHTML = `<div class="h">${esc(t('biggest'))}</div>` + rows.join('');
   }
 }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 /* ----- start screen ----- */
 $('logo').innerHTML = [...'Language.io'].map((ch, i) => `<span style="color:hsl(${[42,200,330,150,42,270,200,15,0,48,48][i]},90%,66%)">${ch}</span>`).join('');
-for (const [k, v] of Object.entries(LANGS)) {
-  $('speakIn').insertAdjacentHTML('beforeend', `<option value="${k}">${v}</option>`);
-  $('learnIn').insertAdjacentHTML('beforeend', `<option value="${k}">${v}</option>`);
+// Language menus show each language in its own name, so anyone can find theirs whatever the interface language.
+for (const k of Object.keys(LANGS)) {
+  $('speakIn').insertAdjacentHTML('beforeend', `<option value="${k}">${NATIVE_NAMES[k]}</option>`);
+  $('learnIn').insertAdjacentHTML('beforeend', `<option value="${k}">${NATIVE_NAMES[k]}</option>`);
 }
 $('nameIn').value = settings.name; $('speakIn').value = settings.speak; $('learnIn').value = settings.learn; $('streakIn').value = String(settings.streak);
-function refreshStart(){
+UI = settings.speak;
+applyUI();
+function refreshStart(e){
+  // Never leave both menus on the same language: move the other one out of the way.
+  if ($('learnIn').value === $('speakIn').value) {
+    const changed = e && e.target && e.target.id === 'learnIn' ? 'learn' : 'speak';
+    if (changed === 'speak') $('learnIn').value = $('speakIn').value === 'en' ? 'es' : 'en';
+    else $('speakIn').value = $('learnIn').value === 'en' ? 'es' : 'en';
+  }
   const learn = $('learnIn').value, speak = $('speakIn').value;
-  $('streakNote').textContent = 'Looks only, no power: ' + streakLabel(+$('streakIn').value) + '.';
+  // "I speak" is also the interface language
+  if (UI !== speak) { UI = speak; applyUI(); setMuteLabel(); buildMoreGames(); }
+  { const sv = +$('streakIn').value, shown = sv >= 0 ? sv : realStreak();
+    $('streakNote').textContent = t('looksOnly', {x: streakLabel(shown)});
+    $('streakBadge').innerHTML = `<b>🔥 ${realStreak()}</b><small>${esc(t('streakWord'))}</small>`; }
   const err = $('err');
   if (learn !== speak) {
     loadProgress(learn, speak);
-    $('todayLbl').textContent = `${LANGS[learn]} lesson ${progress.lesson + 1} of ${LESSONS} · ${learnedCount()}/${lessonIdx(progress.lesson).length} learned`;
+    $('todayLbl').textContent = t('lessonHead', {lang: langName(learn), n: progress.lesson + 1, total: LESSONS, k: learnedCount(), m: lessonIdx(progress.lesson).length});
     $('chips').innerHTML = lessonIdx(progress.lesson).map(i => {
       const c = CONCEPTS[i], done = (progress.hits[i] || 0) >= MASTERY;
       return `<span class="chip${done ? ' done' : ''}"><b>${esc(wordOf(c, learn))}</b> ${esc(wordOf(c, speak))}</span>`;
     }).join('');
-    $('courseNote').textContent = progress.lesson > 0 ? `Duels also review words from your ${progress.lesson} finished lesson${progress.lesson > 1 ? 's' : ''}.` : 'Answer each word right twice in duels to learn it. Learn all 10 to open the next lesson.';
+    $('courseNote').textContent = progress.lesson > 0 ? t('courseReview', {n: progress.lesson}) : t('courseFirst');
   }
-  if (learn === speak) { err.hidden = false; err.textContent = 'Pick two different languages.'; } else err.hidden = true;
+  if (learn === speak) { err.hidden = false; err.textContent = t('pickTwo'); } else err.hidden = true;
 }
 ['speakIn','learnIn','streakIn'].forEach(id => $(id).addEventListener('change', refreshStart));
-refreshStart();
 
 /* ----- more games corner (lobby only). In the app, window.LANGUAGEIO_PLATFORM is 'ios' or 'android',
    so only that store's link shows; on the website both show. ----- */
 const SITE = 'https://westautomotivellc.github.io/1hbdlabs-games/';
 const OTHER_GAMES = [
-  {name: 'WordBust', icon: SITE + 'assets/wordbust-icon.png', apple: 'https://apps.apple.com/us/app/wordbust-spanish-arcade/id6800866615', google: 'https://play.google.com/store/apps/details?id=com.hbdlabs.wordbust'},
-  {name: 'The Last Translator', icon: SITE + 'assets/translator-icon.png', apple: 'https://apps.apple.com/us/app/the-last-translator/id6797645925', google: 'https://play.google.com/store/apps/details?id=com.lasttranslator.game'},
+  // Store links without a country code, so each player lands in their own country's store and language.
+  {name: 'WordBust', icon: SITE + 'assets/wordbust-icon.png', apple: 'https://apps.apple.com/app/id6800866615', google: 'https://play.google.com/store/apps/details?id=com.hbdlabs.wordbust'},
+  {name: 'The Last Translator', icon: SITE + 'assets/translator-icon.png', apple: 'https://apps.apple.com/app/id6797645925', google: 'https://play.google.com/store/apps/details?id=com.lasttranslator.game'},
   {name: 'Tomato Escape', icon: SITE + 'assets/tomato-icon.png', page: SITE + 'tomato-escape/', soon: true},
 ];
-(function buildMoreGames(){
+function buildMoreGames(){
   const plat = window.LANGUAGEIO_PLATFORM || 'web';
   $('moreList').innerHTML = OTHER_GAMES.map(g => {
     const links = [];
-    if (g.soon) links.push(`<span>Coming soon</span>`, `<a href="${g.page}" target="_blank" rel="noopener">See it</a>`);
+    if (g.soon) links.push(`<span>${esc(t('comingSoon'))}</span>`, `<a href="${g.page}" target="_blank" rel="noopener">${esc(t('seeIt'))}</a>`);
     else {
       if (plat !== 'android') links.push(`<a href="${g.apple}" target="_blank" rel="noopener">App Store ↗</a>`);
       if (plat !== 'ios') links.push(`<a href="${g.google}" target="_blank" rel="noopener">Google Play ↗</a>`);
     }
     return `<div class="mg"><img class="mg-icon" src="${g.icon}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'mg-icon',textContent:'${g.name[0]}'}))"><div><div class="mg-name">${esc(g.name)}</div><div class="mg-links">${links.join('')}</div></div></div>`;
   }).join('');
-  $('moreBtn').addEventListener('click', () => {
-    const open = $('morePanel').hidden; $('morePanel').hidden = !open; $('moreBtn').setAttribute('aria-expanded', String(open));
-  });
-})();
+}
+buildMoreGames();
+$('moreBtn').addEventListener('click', () => {
+  const open = $('morePanel').hidden; $('morePanel').hidden = !open; $('moreBtn').setAttribute('aria-expanded', String(open));
+});
+refreshStart();
 function syncLobbyCorner(){
   const lobby = state !== 'play' && $('practice').hidden && $('adWait').hidden;
   $('moreGames').hidden = !lobby;
@@ -2096,9 +2405,9 @@ function showCard(){
   const card = $('pCard'), front = $('pFrontTxt'), back = $('pBackTxt');
   card.classList.toggle('flipped', pr.flipped);
   if (pr.pos >= pr.deck.length) {
-    $('pLang').textContent = 'Deck finished';
-    front.textContent = `${pr.total} cards`;
-    back.hidden = true; $('pHint').textContent = 'Tap to go again';
+    $('pLang').textContent = t('deckDone');
+    front.textContent = t('cards', {n: pr.total});
+    back.hidden = true; $('pHint').textContent = t('tapAgain');
     $('pCount').textContent = '';
     $('pAgain').disabled = $('pGot').disabled = true;
     return;
@@ -2106,12 +2415,12 @@ function showCard(){
   $('pAgain').disabled = $('pGot').disabled = false;
   const c = CONCEPTS[pr.deck[pr.pos]];
   const firstLang = $('pFront').value === 'learn' ? pr.learn : pr.speak, otherLang = firstLang === pr.learn ? pr.speak : pr.learn;
-  $('pLang').textContent = pr.flipped ? `${LANGS[firstLang]} → ${LANGS[otherLang]}` : LANGS[firstLang];
+  $('pLang').textContent = pr.flipped ? `${langName(firstLang)} → ${langName(otherLang)}` : langName(firstLang);
   front.textContent = wordOf(c, firstLang);
   back.textContent = wordOf(c, otherLang);
   back.hidden = !pr.flipped;
-  $('pHint').textContent = pr.flipped ? `Lesson ${Math.floor(pr.deck[pr.pos]/LESSON_SIZE) + 1}` : 'Tap to flip';
-  $('pCount').textContent = `${pr.done + 1} of ${pr.total}${pr.deck.length - pr.pos > pr.total - pr.done ? ' · repeats queued' : ''}`;
+  $('pHint').textContent = pr.flipped ? t('lessonN', {n: Math.floor(pr.deck[pr.pos]/LESSON_SIZE) + 1}) : t('tapFlip');
+  $('pCount').textContent = t('countOf', {a: pr.done + 1, b: pr.total}) + (pr.deck.length - pr.pos > pr.total - pr.done ? t('repeats') : '');
 }
 function flipCard(){ if (pr.pos >= pr.deck.length) { buildDeck(); return; } pr.flipped = !pr.flipped; showCard(); }
 function nextCard(again){
@@ -2143,6 +2452,7 @@ function startGame(){
   if (learn === speak) { refreshStart(); return; }
   settings.name = ($('nameIn').value || 'You').trim().slice(0, 14) || 'You';
   settings.speak = speak; settings.learn = learn; settings.streak = +$('streakIn').value;
+  bumpStreak();
   saveSettings(); loadProgress(); lastQ = -1; updateLessonPill();
   initAudio();
   if (adPending) return;
@@ -2166,10 +2476,10 @@ function showPreGameAd(){
 }
 function beginRound(){
   buildWorld(); spawnPlayer();
-  mouse.active = false;
+  mouse.active = false; joy.on = false; joy.used = false; joy.thr = 0;
   state = 'play';
   $('start').hidden = true; $('over').hidden = true; $('duel').hidden = true;
-  showBanner('Eat letters to grow. Bump smaller blobs to duel.', true);
+  showBanner(t('startBanner'), true);
 }
 $('playBtn').addEventListener('click', startGame);
 $('againBtn').addEventListener('click', startGame);
@@ -2180,14 +2490,14 @@ function gameOver(killer){
   state = 'over';
   closeDuelUI(); sfx.lose();
   const secs = Math.round(T - stats.start);
-  $('overTitle').textContent = killer ? `Eaten by ${killer.name}` : 'Eaten';
-  $('overSub').textContent = killer && killer.boss ? 'La Sombra got you. Listen for the music next time.' : 'Every duel is a word. Every word makes you faster.';
+  $('overTitle').textContent = killer ? t('eatenBy', {name: killer.name}) : t('eaten');
+  $('overSub').textContent = killer && killer.boss ? t('overBoss') : t('overSub');
   $('sPeak').textContent = Math.round(stats.peak); $('sWords').textContent = stats.words; $('sDuels').textContent = stats.duels;
-  $('sTime').textContent = secs >= 60 ? `${Math.floor(secs/60)}m ${secs%60}s` : `${secs}s`;
+  $('sTime').textContent = secs >= 60 ? t('mins', {m: Math.floor(secs/60), s: secs%60}) : t('secs', {s: secs});
   setTimeout(() => { if (state === 'over') $('over').hidden = false; }, 900);
 }
 
-function setMuteLabel(){ $('muteBtn').textContent = settings.muted ? 'Sound off' : 'Sound on'; }
+function setMuteLabel(){ $('muteBtn').textContent = settings.muted ? '🔇' : '🔊'; $('muteBtn').setAttribute('aria-label', settings.muted ? t('soundOff') : t('soundOn')); }
 $('muteBtn').addEventListener('click', () => {
   settings.muted = !settings.muted; saveSettings(); setMuteLabel();
   initAudio(); if (master) master.gain.setTargetAtTime(settings.muted ? 0 : 0.9, AC.currentTime, 0.05);
@@ -2196,6 +2506,48 @@ setMuteLabel();
 
 /* ================= boot ================= */
 buildWorld();
+/* ----- app icon: open the page with #make-icon to draw the store icon from the game's own art.
+   It posts icon.png (full square) and adaptive-icon.png (Android, art kept in the middle) to the local
+   save server in scripts/icon-server.py. ----- */
+function drawIconScene(size, opts){
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const saved = ctx; ctx = c.getContext('2d');
+  const k = size / 1024 * (opts.scale || 1), off = size / 2 * (1 - (opts.scale || 1));
+  ctx.setTransform(k, 0, 0, k, off, off);
+  cam.z = 1; T = 1.35;
+  if (!opts.transparent) {
+    const bg = ctx.createRadialGradient(470, 430, 60, 512, 512, 760);
+    bg.addColorStop(0, '#3a2f8f'); bg.addColorStop(.45, '#1b1f52'); bg.addColorStop(1, '#0b0e1d');
+    ctx.fillStyle = bg; ctx.fillRect(-off/k, -off/k, 1024/(opts.scale||1), 1024/(opts.scale||1));
+    ctx.fillStyle = 'rgba(160,175,255,.16)';
+    for (let x = 32; x < 1024; x += 64) for (let y = 32; y < 1024; y += 64) ctx.fillRect(x - 3, y - 3, 6, 6);
+  }
+  // floating letters from the five languages
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  [['ñ', 150, 170, 330], ['é', 860, 140, 48], ['k', 905, 520, 190], ['ㅎ', 120, 560, 150], ['á', 300, 900, 20],
+   ['a', 560, 120, 270], ['ç', 760, 905, 300], ['ü', 90, 360, 95], ['b', 940, 760, 210]].forEach(([ch, x, y, h]) => {
+    ctx.font = '800 64px "Baloo 2", sans-serif'; ctx.fillStyle = `hsl(${h},95%,70%)`; ctx.fillText(ch, x, y);
+  });
+  // thornbush peeking in from the corner
+  drawBush({x: 150, y: 890, r: 120, seed: 3, spikes: [1.05,.9,1.12,.95,1.1,.88,1.15,.92,1.04,1.1,.9,1.08,.96,1.13,.9]});
+  // two blobs locked in a duel bubble, the player wearing a green 100-day flame
+  const me = {x: 420, y: 560, r: 205, mass: 2400, hue: 42, streak: 100, wob: 1.2, noLabel: true, round: true};
+  const foe = {x: 720, y: 330, r: 135, mass: 1000, hue: 275, streak: 0, wob: 4.1, noLabel: true, round: true};
+  const small = {x: 830, y: 760, r: 78, mass: 340, hue: 175, streak: 50, wob: 7.7, noLabel: true, round: true};
+  drawBubble({cx: 545, cy: 465, R: 400});
+  drawBlob(small);
+  drawBlob(me); drawBlob(foe);
+  ctx = saved;
+  return c;
+}
+function makeIcon(){
+  const post = (name, canvas) => new Promise(res => canvas.toBlob(b => fetch('/save?name=' + name, {method: 'POST', body: b}).then(r => res(r.status)), 'image/png'));
+  const full = drawIconScene(1024, {});
+  const fg = drawIconScene(1024, {scale: .74});
+  document.body.innerHTML = ''; document.body.appendChild(full); full.style.width = '512px';
+  return Promise.all([post('icon.png', full), post('adaptive-icon.png', fg)]);
+}
+if (location.hash === '#make-icon') document.fonts.ready.then(() => setTimeout(() => makeIcon().then(r => { window.__iconDone = r; }), 300));
 let last = performance.now();
 function frame(t){ const dt = Math.min(0.05, (t - last)/1000); last = t; update(dt); render(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
