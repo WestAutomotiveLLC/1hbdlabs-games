@@ -292,3 +292,18 @@ TomatoEscape/docs/itch-description-localized.md, short descriptions below).
 | Keywords | correr,persecucion,espia,escape,aventura,aprender ingles,frances,tagalo,vocabulario,palabras,tomate |
 
 **Description:** the Español section of TomatoEscape/docs/itch-description-localized.md.
+
+---
+
+## App Store: Tagalog search words (add with each app's next update)
+
+The App Store has no Tagalog or Filipino page language, and the Philippines store shows the **English (U.K.)** page.
+So each app gets an **English (U.K.)** localization: copy every English (U.S.) text into it unchanged, and use the
+Tagalog-heavy keywords below. People searching in Tagalog in the Philippines then find the app, and the U.S.
+keywords stay as they are. All three fit the 100-character limit.
+
+| App | English (U.K.) keywords |
+| --- | --- |
+| WordBust | tagalog,filipino,ingles,espanyol,matuto,wika,salita,laro,bokabularyo,aral,pinoy,salin,arcade |
+| The Last Translator | tagalog,filipino,ingles,espanyol,pranses,koreano,matuto,wika,salita,laro,rpg,aral,salin,pinoy |
+| Tomato Escape | tagalog,filipino,ingles,espanyol,matuto,wika,salita,laro,takbo,takas,kamatis,pinoy,aral |
