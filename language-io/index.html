@@ -1,0 +1,2206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="description" content="Language.io: a free blob battle game where every bump is a word duel. Learn Spanish, English, French, Filipino or Korean.">
+<link rel="canonical" href="https://westautomotivellc.github.io/1hbdlabs-games/language-io/">
+<meta property="og:title" content="Language.io">
+<meta property="og:description" content="Eat or get eaten. Every bump is a word duel in the language you're learning.">
+<meta property="og:type" content="website">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
+</head>
+<body>
+<meta charset="utf-8">
+<title>Language.io</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: full-bleed canvas arena; small glass panels float at the edges; the duel card docks at the bottom. One committed night-pond look. */
+:root{
+  --ink:#0b0e1d; --ink-2:#151b36; --panel:rgba(16,20,42,.9); --line:#2c3468;
+  --text:#eef0ff; --muted:#a3abd9; --gold:#ffc94a; --good:#46e09a; --bad:#ff5f77;
+  --bubble:#8fdcff; --ember:#ff9f4a; --thorn:#d25cb6;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(--text);font-family:var(--body)}
+#game{position:fixed;inset:0;display:block;touch-action:none;cursor:crosshair}
+button{font:inherit;color:inherit}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ---------- start / over screens ---------- */
+.screen{position:fixed;inset:0;display:grid;place-items:center;overflow:auto;z-index:20;
+  padding-block:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:radial-gradient(ellipse at center,rgba(11,14,29,.25),rgba(11,14,29,.82))}
+#start,#over{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.card{width:100%;max-width:440px;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:22px;
+  padding:22px;display:grid;gap:14px;box-shadow:0 24px 70px rgba(0,0,0,.5);backdrop-filter:blur(10px)}
+.logo{font-family:var(--display);font-weight:800;font-size:clamp(44px,12vw,58px);line-height:.85;margin:0;letter-spacing:-.01em}
+.logo span{display:inline-block}
+.tag{margin:0;color:var(--muted);font-size:15px;line-height:1.45}
+.field{display:grid;gap:6px;min-width:0}
+.field label{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hint{text-transform:none;letter-spacing:0;font-weight:500;color:var(--ember)}
+.field input,.field select{width:100%;box-sizing:border-box;background:var(--ink-2);border:1px solid var(--line);color:var(--text);
+  border-radius:12px;padding:10px 12px;font:500 15px var(--body)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.note{margin:0;font-size:13px;color:var(--muted)}
+.today{display:grid;gap:8px}
+.today .lbl{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--ink-2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:13px}
+.chip b{font-weight:700}
+.chip.done{border-color:var(--good);background:rgba(70,224,154,.12)}
+.err{margin:0;color:var(--bad);font-size:14px}
+.btn-primary{background:var(--gold);color:#241a00;border:0;border-radius:14px;padding:13px 16px;font:800 20px var(--display);cursor:pointer}
+.btn-primary:hover{filter:brightness(1.07)}
+.btn-ghost{background:transparent;border:1px solid var(--line);border-radius:14px;padding:11px 16px;font:600 15px var(--body);cursor:pointer}
+.how{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.how li{display:grid;grid-template-columns:18px 1fr;gap:8px}
+.how li::before{content:"";width:10px;height:10px;border-radius:50%;margin-top:5px;background:var(--dot,var(--gold))}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font:800 26px var(--display);font-variant-numeric:tabular-nums;line-height:1.1}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ---------- practice ---------- */
+.p-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.p-title{font:800 30px var(--display);margin:0;line-height:1}
+.p-close{padding:7px 14px}
+.p-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.p-controls select{padding:8px 8px;font-size:14px}
+.p-card{min-height:190px;background:var(--ink-2);border:1.5px solid var(--line);border-radius:18px;padding:18px;cursor:pointer;
+  display:grid;align-content:center;justify-items:center;gap:8px;text-align:center}
+.p-card:hover{border-color:var(--bubble)}
+.p-card.flipped{border-color:var(--gold)}
+.p-lang{font:700 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.p-front{font:800 clamp(30px,9vw,44px) var(--display);line-height:1.05;overflow-wrap:anywhere}
+.p-back{font:700 22px var(--body);color:var(--gold);overflow-wrap:anywhere}
+.p-hint{font-size:13px;color:var(--muted)}
+.p-count{text-align:center;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+@media (max-width:420px){ .p-controls{grid-template-columns:1fr 1fr} }
+
+/* ---------- more games corner ---------- */
+.more{position:fixed;z-index:25;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  display:flex;flex-direction:column-reverse;align-items:flex-start;gap:8px;max-width:calc(100% - 24px)}
+.more-btn{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font:700 13px var(--body);cursor:pointer}
+.more-btn:hover{border-color:var(--gold)}
+.more-panel{width:300px;max-width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;
+  display:grid;gap:10px;backdrop-filter:blur(10px);box-shadow:0 16px 40px rgba(0,0,0,.45)}
+.more-head{font:800 16px var(--display)}
+.more-list{display:grid;gap:10px}
+.mg{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center}
+.mg-icon{width:48px;height:48px;border-radius:12px;background:var(--ink-2);object-fit:cover;display:grid;place-items:center;font:800 20px var(--display)}
+.mg-name{font:700 14px var(--body)}
+.mg-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.mg-links a,.mg-links span{font:600 12px var(--body);color:var(--text);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:3px 8px}
+.mg-links a:hover{border-color:var(--gold)}
+.mg-links span{color:var(--muted)}
+.more-foot{font-size:12px;color:var(--muted)}
+.more-foot a{color:var(--muted)}
+
+/* ---------- HUD ---------- */
+.hud{position:fixed;z-index:10}
+#hudL{top:calc(12px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font:700 15px var(--display);white-space:nowrap}
+.pill .k{color:var(--muted);font-weight:600;margin-right:4px}
+#lb{top:calc(56px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));background:var(--panel);
+  border:1px solid var(--line);border-radius:14px;padding:8px 10px;font-size:13px;min-width:150px;pointer-events:none;display:grid;gap:2px}
+#lb .row{display:grid;grid-template-columns:18px 1fr auto;gap:6px;font-variant-numeric:tabular-nums}
+#lb .row.me{color:var(--gold);font-weight:700}
+#lb .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lb .h{font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+#muteBtn{top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));background:var(--panel);
+  border:1px solid var(--line);border-radius:999px;padding:6px 12px;font:600 13px var(--body);cursor:pointer}
+#banner{top:calc(56px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);max-width:min(460px,calc(100% - 32px));
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 14px;font:700 16px var(--display);text-align:center;pointer-events:none}
+#banner.good{border-color:var(--good)} #banner.bad{border-color:var(--bad)}
+#revChip{bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--panel);
+  border:1.5px solid var(--ember);color:var(--ember);border-radius:999px;padding:6px 14px;font:700 15px var(--display);pointer-events:none;white-space:nowrap}
+#bossTag{top:calc(100px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);font:700 13px var(--body);letter-spacing:.14em;
+  text-transform:uppercase;color:#d9a6ff;pointer-events:none;text-shadow:0 0 12px rgba(160,60,255,.8)}
+
+/* ---------- duel card ---------- */
+#duel{position:fixed;z-index:15;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  width:min(560px,calc(100% - 32px));box-sizing:border-box;background:var(--panel);border:1.5px solid var(--bubble);border-radius:22px;
+  padding:14px 16px 16px;display:grid;gap:10px;box-shadow:0 0 0 6px rgba(143,220,255,.08),0 20px 60px rgba(0,0,0,.5);backdrop-filter:blur(10px)}
+#duel.revenge{border-color:var(--ember);box-shadow:0 0 0 6px rgba(255,159,74,.1),0 20px 60px rgba(0,0,0,.5)}
+.d-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.d-title{font:800 19px var(--display);line-height:1.1}
+.d-goal{font-size:13px;color:var(--muted);margin-top:2px}
+.d-pips{display:flex;gap:6px;padding-top:4px;flex-shrink:0}
+.d-pips i{width:14px;height:14px;border-radius:50%;border:2px solid var(--bubble);box-sizing:border-box}
+.d-pips i.on{background:var(--bubble)}
+#duel.revenge .d-pips i{border-color:var(--ember)} #duel.revenge .d-pips i.on{background:var(--ember)}
+.d-word{display:grid;justify-items:center;gap:2px}
+.d-lang{font:700 11px var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.d-prompt{font:800 clamp(34px,9vw,50px) var(--display);line-height:1;text-align:center;overflow-wrap:anywhere}
+.d-timer{height:6px;background:var(--ink-2);border-radius:99px;overflow:hidden}
+.d-timer i{display:block;height:100%;width:100%;background:var(--bubble);transform-origin:left center}
+#duel.revenge .d-timer i{background:var(--ember)}
+.d-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.d-opts button{min-height:52px;min-width:0;background:var(--ink-2);border:1.5px solid var(--line);border-radius:14px;padding:8px 12px;
+  display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;font:600 16px var(--body)}
+.d-opts button:hover:not(:disabled){border-color:var(--bubble)}
+.d-opts button:disabled{cursor:default;opacity:.75}
+.d-opts button.right{background:rgba(70,224,154,.18);border-color:var(--good);opacity:1}
+.d-opts button.wrong{background:rgba(255,95,119,.16);border-color:var(--bad);opacity:1}
+.d-opts kbd{font:700 12px var(--body);color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 6px;flex-shrink:0}
+.d-opts span{overflow-wrap:anywhere;min-width:0}
+.d-status{min-height:20px;font-size:14px;text-align:center;color:var(--muted)}
+.d-status.good{color:var(--good)} .d-status.bad{color:var(--bad)}
+
+@media (max-width:560px){
+  #lb{min-width:120px;font-size:12px}
+  #lb .row:nth-child(n+6){display:none}
+  .d-opts button{min-height:46px;font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){ .btn-primary:hover{filter:none} }
+</style>
+
+<canvas id="game" aria-label="Language.io arena"></canvas>
+
+<div class="hud" id="hudL" hidden>
+  <div class="pill"><span class="k">Size</span><span id="hudSize">20</span></div>
+  <div class="pill" id="hudStreak"></div>
+  <div class="pill" id="hudLesson"></div>
+</div>
+<div class="hud" id="lb" hidden></div>
+<button class="hud" id="muteBtn" type="button">Sound on</button>
+<div class="hud" id="banner" hidden></div>
+<div class="hud" id="revChip" hidden></div>
+<div class="hud" id="bossTag" hidden>La Sombra is near</div>
+
+<div id="duel" hidden role="dialog" aria-label="Word duel">
+  <div class="d-top">
+    <div><div class="d-title" id="dTitle"></div><div class="d-goal" id="dGoal"></div></div>
+    <div class="d-pips" id="dPips"></div>
+  </div>
+  <div class="d-word"><span class="d-lang" id="dLang"></span><span class="d-prompt" id="dPrompt"></span></div>
+  <div class="d-timer"><i id="dBar"></i></div>
+  <div class="d-opts" id="dOpts">
+    <button type="button" data-i="0"><kbd>1</kbd><span></span></button>
+    <button type="button" data-i="1"><kbd>2</kbd><span></span></button>
+    <button type="button" data-i="2"><kbd>3</kbd><span></span></button>
+    <button type="button" data-i="3"><kbd>4</kbd><span></span></button>
+  </div>
+  <div class="d-status" id="dStatus"></div>
+</div>
+
+<div class="screen" id="start">
+  <div class="card">
+    <h1 class="logo" id="logo">Language.io</h1>
+    <p class="tag">Eat or get eaten. Every bite is a word duel in the language you're learning.</p>
+    <div class="field"><label for="nameIn">Name</label><input id="nameIn" maxlength="14" autocomplete="off"></div>
+    <div class="row2">
+      <div class="field"><label for="speakIn">I speak</label><select id="speakIn"></select></div>
+      <div class="field"><label for="learnIn">I'm learning</label><select id="learnIn"></select></div>
+    </div>
+    <div class="field">
+      <label for="streakIn">Daily streak <span class="hint">(test setting)</span></label>
+      <select id="streakIn">
+        <option value="0">0 days</option><option value="10">10 days</option><option value="50">50 days</option>
+        <option value="100">100 days</option><option value="500">500 days</option>
+      </select>
+      <p class="note" id="streakNote"></p>
+    </div>
+    <div class="today"><div class="lbl" id="todayLbl">Lesson 1</div><div class="chips" id="chips"></div><p class="note" id="courseNote"></p></div>
+    <p class="err" id="err" hidden></p>
+    <div class="btnrow">
+      <button class="btn-ghost" id="practiceBtn" type="button">Practice words</button>
+      <button class="btn-primary" id="playBtn" type="button">Play survival</button>
+    </div>
+    <ul class="how">
+      <li>Steer with your mouse or finger. Eat floating letters to grow.</li>
+      <li style="--dot:var(--bubble)">Bump any blob to start a one-word duel. Whoever answers first wins.</li>
+      <li style="--dot:var(--ember)">The winner takes up to their own size from the loser. Run out of size and you're eaten, so big blobs are deadly. Big losers barely get knocked back, so small blobs can hit them again.</li>
+      <li style="--dot:var(--good)">Blobs near you show what a duel is worth: green is what you'd win, red is what you'd lose.</li>
+      <li style="--dot:var(--thorn)">Small blobs can hide in thornbushes. A big blob can smash a bush to expose who's hiding, but it cracks open: it loses 20% of its size, slows down, and loses more in duels for a few seconds. Bushes grow back after 40 seconds.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="screen" id="practice" hidden>
+  <div class="card">
+    <div class="p-head">
+      <h2 class="p-title">Practice</h2>
+      <button class="btn-ghost p-close" id="pClose" type="button">Back</button>
+    </div>
+    <div class="p-controls">
+      <div class="field"><label for="pScope">Words</label>
+        <select id="pScope"><option value="lesson">This lesson</option><option value="all">All lessons so far</option></select></div>
+      <div class="field"><label for="pOrder">Order</label>
+        <select id="pOrder"><option value="course">Course order</option><option value="shuffle">Shuffled</option><option value="hard">Hardest first</option><option value="reverse">Newest first</option></select></div>
+      <div class="field"><label for="pFront">Show first</label>
+        <select id="pFront"><option value="learn">Word to learn</option><option value="speak">Meaning</option></select></div>
+    </div>
+    <button class="p-card" id="pCard" type="button" aria-live="polite">
+      <span class="p-lang" id="pLang"></span>
+      <span class="p-front" id="pFrontTxt"></span>
+      <span class="p-back" id="pBackTxt" hidden></span>
+      <span class="p-hint" id="pHint">Tap to flip</span>
+    </button>
+    <div class="p-count" id="pCount"></div>
+    <div class="btnrow">
+      <button class="btn-ghost p-again" id="pAgain" type="button">Again</button>
+      <button class="btn-primary" id="pGot" type="button">Got it</button>
+    </div>
+    <p class="note">Space flips the card. Left arrow is Again, right arrow is Got it. Practice doesn't change your lesson progress; duels do.</p>
+  </div>
+</div>
+
+<div id="moreGames" class="more" hidden>
+  <button class="more-btn" id="moreBtn" type="button" aria-expanded="false" aria-controls="morePanel">More 1HBDLabs games</button>
+  <div class="more-panel" id="morePanel" hidden>
+    <div class="more-head">More games by 1HBDLabs</div>
+    <div class="more-list" id="moreList"></div>
+    <div class="more-foot"><a href="https://westautomotivellc.github.io/1hbdlabs-games/" target="_blank" rel="noopener">All games</a> · <a href="https://westautomotivellc.github.io/1hbdlabs-games/language-io/privacy/" target="_blank" rel="noopener">Privacy</a></div>
+  </div>
+</div>
+
+<div class="screen" id="adWait" hidden><div class="card" style="text-align:center;max-width:260px"><p class="tag">Loading a quick ad…</p></div></div>
+
+<div class="screen" id="over" hidden>
+  <div class="card">
+    <h2 class="logo" style="font-size:40px" id="overTitle">Eaten</h2>
+    <p class="tag" id="overSub"></p>
+    <div class="stats">
+      <div class="stat"><div class="k">Peak size</div><div class="v" id="sPeak">0</div></div>
+      <div class="stat"><div class="k">Words right</div><div class="v" id="sWords">0</div></div>
+      <div class="stat"><div class="k">Duels won</div><div class="v" id="sDuels">0</div></div>
+      <div class="stat"><div class="k">Survived</div><div class="v" id="sTime">0s</div></div>
+    </div>
+    <div class="btnrow">
+      <button class="btn-ghost" id="menuBtn" type="button">Settings</button>
+      <button class="btn-primary" id="againBtn" type="button">Play again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= words: The Last Translator curriculum, 900 concepts in course order (en | es | fil | fr | ko) ================= */
+const RAW = `field|campo|bukid|champ|밭
+seed|semilla|buto|graine|씨앗
+wheat|trigo|trigo|blé|밀
+barn|granero|kamalig|grange|헛간
+fence|cerca|bakod|clôture|울타리
+soil|tierra|lupa|sol|토양
+shovel|pala|pala|pelle|삽
+rooster|gallo|tandang|coq|수탉
+stream|arroyo|batis|ruisseau|개울
+candle|vela|kandila|bougie|양초
+blanket|manta|kumot|couverture|담요
+spoon|cuchara|kutsara|cuillère|숟가락
+boot|bota|bota|botte|부츠
+belt|cinturón|sinturon|ceinture|벨트
+scarf|bufanda|bandana|foulard|스카프
+hand|mano|kamay|main|손
+foot|pie|paa|pied|발
+head|cabeza|ulo|tête|머리
+arm|brazo|braso|bras|팔
+leg|pierna|binti|jambe|다리
+to be|ser|maging|être|이다
+to have|tener|mayroon|avoir|가지다
+to do|hacer|gawin|faire|하다
+to go|ir|pumunta|aller|가다
+to come|venir|dumating|venir|오다
+to see|ver|makita|voir|보다
+to look|mirar|tumingin|regarder|바라보다
+to hear|oír|marinig|entendre|듣다
+to listen|escuchar|makinig|écouter|귀 기울여 듣다
+to say|decir|sabihin|dire|말하다
+big|grande|malaki|grand|큰
+small|pequeño|maliit|petit|작은
+tall|alto|matangkad|grand|키가 큰
+short|corto|maikli|court|짧은
+long|largo|mahaba|long|긴
+new|nuevo|bago|nouveau|새로운
+old|viejo|luma|vieux|오래된
+young|joven|bata pa|jeune|어린
+good|bueno|mabuti|bon|좋은
+bad|malo|masama|mauvais|나쁜
+face|cara|mukha|visage|얼굴
+eye|ojo|mata|œil|눈
+mouth|boca|bibig|bouche|입
+ear|oreja|tainga|oreille|귀
+nose|nariz|ilong|nez|코
+house|casa|bahay|maison|집
+door|puerta|pinto|porte|문
+window|ventana|bintana|fenêtre|창문
+room|habitación|silid|chambre|방
+bed|cama|kama|lit|침대
+to tell|contar|magkuwento|raconter|이야기하다
+to ask|preguntar|magtanong|demander|묻다
+to answer|responder|sumagot|répondre|대답하다
+to read|leer|basahin|lire|읽다
+to write|escribir|magsulat|écrire|쓰다
+to speak|hablar|magsalita|parler|말하다
+to learn|aprender|matuto|apprendre|배우다
+to teach|enseñar|magturo|enseigner|가르치다
+to study|estudiar|mag-aral|étudier|공부하다
+to play|jugar|maglaro|jouer|놀다
+chair|silla|upuan|chaise|의자
+table|mesa|mesa|table|테이블
+book|libro|aklat|livre|책
+pencil|lápiz|lapis|crayon|연필
+paper|papel|papel|papier|종이
+school|escuela|paaralan|école|학교
+teacher|maestro|guro|professeur|선생님
+student|estudiante|estudyante|étudiant|학생
+friend|amigo|kaibigan|ami|친구
+family|familia|pamilya|famille|가족
+happy|feliz|masaya|heureux|행복하다
+sad|triste|malungkot|triste|슬픈
+hot|caliente|mainit|chaud|뜨거운
+cold|frío|malamig|froid|추운
+warm|cálido|mainit-init|chaud|따뜻한
+cool|fresco|malamig-lamig|frais|시원한
+fast|rápido|mabilis|rapide|빠른
+slow|lento|mabagal|lent|느린
+easy|fácil|madali|facile|쉬운
+hard|difícil|mahirap|difficile|어려운
+to work|trabajar|magtrabaho|travailler|일하다
+to help|ayudar|tumulong|aider|돕다
+to make|fabricar|gumawa|faire|만들다
+to use|usar|gumamit|utiliser|사용하다
+to take|tomar|kunin|prendre|가져가다
+to give|dar|magbigay|donner|주다
+to put|poner|ilagay|mettre|놓다
+to get|obtener|makuha|obtenir|얻다
+to keep|guardar|panatilihin|garder|유지하다
+to open|abrir|buksan|ouvrir|열다
+mother|madre|ina|mère|어머니
+father|padre|ama|père|아버지
+sister|hermana|kapatid na babae|sœur|여자 형제
+brother|hermano|kapatid na lalaki|frère|남자 형제
+baby|bebé|sanggol|bébé|아기
+boy|niño|batang lalaki|garçon|소년
+girl|niña|batang babae|fille|소녀
+man|hombre|lalaki|homme|남성
+woman|mujer|babae|femme|여성
+food|comida|pagkain|nourriture|음식
+water|agua|tubig|eau|물
+milk|leche|gatas|lait|우유
+bread|pan|tinapay|pain|빵
+rice|arroz|kanin|riz|밥
+apple|manzana|mansanas|pomme|사과
+banana|plátano|saging|banane|바나나
+egg|huevo|itlog|œuf|계란
+breakfast|desayuno|almusal|petit-déjeuner|아침 식사
+lunch|almuerzo|tanghalian|déjeuner|점심 식사
+dinner|cena|hapunan|dîner|저녁 식사
+to close|cerrar|isara|fermer|닫다
+to start|empezar|magsimula|commencer|시작하다
+to stop|parar|huminto|arrêter|멈추다
+to walk|caminar|maglakad|marcher|걷다
+to run|correr|tumakbo|courir|달리다
+to jump|saltar|lumukso|sauter|점프하다
+to sit|sentarse|umupo|s'asseoir|앉다
+to stand|estar de pie|tumayo|se tenir debout|서다
+to sleep|dormir|matulog|dormir|잠을 자다
+to wake up|despertarse|gumising|se réveiller|잠에서 깨다
+clean|limpio|malinis|propre|깨끗한
+dirty|sucio|marumi|sale|더러운
+full|lleno|puno|plein|가득한
+empty|vacío|walang laman|vide|비어 있는
+open|abierto|bukas|ouvert|열려 있는
+closed|cerrado|sarado|fermé|닫힌
+light|claro|maliwanag|clair|밝은
+dark|oscuro|madilim|sombre|어두운
+wet|mojado|basa|mouillé|젖은
+dry|seco|tuyo|sec|마른
+cat|gato|pusa|chat|고양이
+dog|perro|aso|chien|개
+bird|pájaro|ibon|oiseau|새
+fish|pez|isda|poisson|물고기
+horse|caballo|kabayo|cheval|말
+cow|vaca|baka|vache|암소
+pig|cerdo|baboy|cochon|돼지
+chicken|pollo|manok|poulet|닭
+tree|árbol|puno|arbre|나무
+flower|flor|bulaklak|fleur|꽃
+to eat|comer|kumain|manger|먹다
+to drink|beber|uminom|boire|마시다
+to cook|cocinar|magluto|cuisiner|요리하다
+to wash|lavar|maghugas|laver|씻다
+to clean|limpiar|maglinis|nettoyer|청소하다
+to wear|llevar puesto|magsuot|porter|입다
+to buy|comprar|bumili|acheter|구입하다
+to pay|pagar|magbayad|payer|지불하다
+to like|gustar|magustuhan|aimer|좋아하다
+to love|amar|magmahal|aimer|사랑하다
+grass|césped|damo|herbe|잔디
+river|río|ilog|rivière|강
+lake|lago|lawa|lac|호수
+rain|lluvia|ulan|pluie|비
+sun|sol|araw|soleil|해
+moon|luna|buwan|lune|달
+star|estrella|bituin|étoile|별
+cloud|nube|ulap|nuage|구름
+day|día|araw|jour|낮
+night|noche|gabi|nuit|밤
+soft|suave|malambot|doux|부드러운
+strong|fuerte|malakas|fort|강한
+weak|débil|mahina|faible|약한
+loud|ruidoso|maingay|fort|시끄러운
+quiet|tranquilo|tahimik|calme|조용한
+kind|amable|mabait|gentil|친절한
+mean|antipático|masama ang ugali|méchant|심술궂은
+funny|gracioso|nakakatawa|drôle|재미있는
+serious|serio|Seryoso|sérieux|심각한
+pretty|bonito|maganda|joli|예쁜
+to want|querer|gusto|vouloir|원하다
+to need|necesitar|kailangan|avoir besoin|필요하다
+to know|saber|alam|savoir|알다
+to think|pensar|isipin|penser|생각하다
+to feel|sentir|makaramdam|ressentir|느끼다
+to find|encontrar|mahanap|trouver|찾다
+to lose|perder|maiwala|perdre|잃다
+to bring|traer|dalhin|apporter|가져오다
+to send|enviar|ipadala|envoyer|보내다
+to show|mostrar|ipakita|montrer|보여주다
+morning|mañana|umaga|matin|아침
+afternoon|tarde|hapon|après-midi|오후
+street|calle|kalye|rue|거리
+car|carro|sasakyan|voiture|자동차
+bus|autobús|bus|bus|버스
+bicycle|bicicleta|bisikleta|vélo|자전거
+store|tienda|tindahan|magasin|가게
+money|dinero|pera|argent|돈
+shirt|camisa|kamiseta|chemise|셔츠
+pants|pantalones|pantalon|pantalon|바지
+shoes|zapatos|sapatos|chaussures|신발
+hat|sombrero|sumbrero|chapeau|모자
+coat|abrigo|amerikana|manteau|코트
+sock|calcetín|medyas|chaussette|양말
+body|cuerpo|katawan|corps|몸
+back|espalda|likod|dos|등
+knee|rodilla|tuhod|genou|무릎
+tooth|diente|ngipin|dent|이빨
+hair|cabello|buhok|cheveux|머리카락
+bathroom|baño|banyo|salle de bain|화장실
+to wait|esperar|maghintay|attendre|기다리다
+to live|vivir|mabuhay|vivre|살다
+to stay|quedarse|manatili|rester|머무르다
+to leave|salir|umalis|partir|떠나다
+to arrive|llegar|dumating|arriver|도착하다
+to visit|visitar|bisitahin|visiter|방문하다
+to call|llamar|tumawag|appeler|부르다
+to smile|sonreír|ngumiti|sourire|미소 짓다
+to laugh|reír|tumawa|rire|웃다
+to cry|llorar|umiyak|pleurer|울다
+ugly|feo|pangit|laid|못생긴
+red|rojo|pula|rouge|빨간색
+blue|azul|asul|bleu|파란색
+green|verde|berde|vert|녹색
+yellow|amarillo|dilaw|jaune|노란색
+black|negro|itim|noir|검은색
+white|blanco|puti|blanc|하얀색
+brown|marrón|kayumanggi|brun|갈색
+orange|naranja|kulay kahel|orange|주황색
+purple|morado|lila|violet|보라
+kitchen|cocina|kusina|cuisine|주방
+clock|reloj|orasan|horloge|시계
+phone|teléfono|telepono|téléphone|핸드폰
+bag|bolsa|bag|sac|가방
+box|caja|kahon|boîte|상자
+cup|taza|tasa|tasse|컵
+plate|plato|plato|assiette|접시
+fork|tenedor|tinidor|fourchette|포크
+knife|cuchillo|kutsilyo|couteau|칼
+ball|pelota|bola|balle|공
+to sing|cantar|kumanta|chanter|노래하다
+to dance|bailar|sumayaw|danser|춤을 추다
+to swim|nadar|lumangoy|nager|수영하다
+to drive|conducir|magmaneho|conduire|운전하다
+to ride|montar|sumakay|rouler|타다
+to turn|girar|paikutin|tourner|회전하다
+to move|mover|gumalaw|bouger|이동하다
+to cut|cortar|gupitin|couper|자르다
+to break|romper|basagin|briser|부수다
+to fix|arreglar|ayusin|réparer|고치다
+game|juego|laro|jeu|게임
+home|hogar|bahay|maison|집
+city|ciudad|lungsod|ville|도시
+country|país|bansa|pays|국가
+map|mapa|mapa|carte|지도
+key|llave|susi|clé|열쇠
+bottle|botella|bote|bouteille|병
+towel|toalla|tuwalya|serviette|수건
+beach|playa|tabing dagat|plage|해변
+park|parque|parke|parc|공원
+hungry|hambriento|gutom|affamé|배고픈
+thirsty|sediento|nauuhaw|assoiffé|목마른
+tired|cansado|pagod|fatigué|피곤한
+sick|enfermo|may sakit|malade|아픈
+ready|listo|handa na|prêt|준비가 된
+safe|seguro|ligtas|sûr|안전한
+lost|perdido|nawala|perdu|잃어버린
+right|correcto|tama|correct|맞는
+wrong|equivocado|nagkakamali|faux|잘못된
+near|cercano|malapit|près|가까운
+to try|intentar|subukan|essayer|노력하다
+to choose|elegir|pumili|choisir|선택하다
+to remember|recordar|tandaan|se souvenir|기억하다
+to forget|olvidar|kalimutan|oublier|잊다
+to carry|llevar|dalhin|porter|나르다
+to follow|seguir|sumunod|suivre|따르다
+to watch|observar|manood|regarder|보다
+to meet|conocer|makilala|rencontrer|만나다
+to share|compartir|ibahagi|partager|공유하다
+to hold|sostener|humawak|tenir|잡고 있다
+suitcase|maleta|maleta|valise|여행 가방
+backpack|mochila|backpack|sac à dos|배낭
+wall|pared|pader|mur|벽
+notebook|cuaderno|kuwaderno|carnet de notes|공책
+exercise|ejercicio|ehersisyo|exercice|운동
+eraser|goma|pambura|gomme|지우개
+page|página|pahina|page|페이지
+cellphone|celular|selpon|téléphone portable|핸드폰
+entrance|entrada|pasukan|entrée|입구
+ice cream|helado|sorbetes|glace|아이스크림
+to converse|conversar|makipag-usap|converser|대화하다
+to explain|explicar|magpaliwanag|expliquer|설명하다
+to finish|terminar|tapusin|finir|마치다
+to prefer|preferir|mas gusto|préférer|선호하다
+to encourage|alentar|hikayatin|encourager|장려하다
+to calm down|calmarse|kumalma|se calmer|진정하다
+to take out|sacar|ilabas|sortir|꺼내다
+to regret|arrepentirse|magsisi|regretter|후회하다
+to ride a horse|cabalgar|sumakay sa kabayo|monter à cheval|말을 타다
+to happen|suceder|mangyari|arriver|일어나다
+to attend|asistir|dumalo|assister à|참석하다
+to hurry|apurarse|magmadali|se dépêcher|서두르다
+to approve|aprobar|aprubahan|approuver|승인하다
+to risk|arriesgar|ipagsapalaran|risquer|위험을 감수하다
+to dare|atreverse|maglakas-loob|oser|도전하다
+to throw|lanzar|ihagis|jeter|던지다
+to burn|quemar|sunugin|brûler|태우다
+to crash|chocar|bumangga|entrer en collision|충돌하다
+to appear|aparecer|lumitaw|apparaître|나타나다
+to sign up|inscribirse|magpatala|s'inscrire|가입하다
+surrounding|circundante|nakapaligid|environnant|주변
+early|temprano|maaga|tôt|일찍
+enough|suficiente|sapat na|assez|충분한
+alone|solo|mag-isa|seul|홀로
+worried|preocupado|nag-aalala|inquiet|걱정하는
+relieved|aliviado|gumaan ang loob|soulagé|안도하는
+stubborn|terco|matigas ang ulo|têtu|고집스러운
+ashamed|avergonzado|nahihiya|honteux|부끄러운
+tangled|enredado|gusot|emmêlé|얽힌
+poisonous|venenoso|nakakalason|toxique|독이 있는
+tart|tarta|tart|tarte|타트
+baseball cap|gorra|baseball cap|casquette de baseball|야구 모자
+sandwich|sándwich|sanwits|sandwich|샌드위치
+beer|cerveza|beer|bière|맥주
+wine glass|copa|baso ng alak|verre à vin|와인잔
+umbrella|paraguas|payong|parapluie|우산
+card|tarjeta|card|carte|카드
+letter|carta|sulat|lettre|편지
+boat|barco|bangka|bateau|보트
+tie|corbata|kurbata|cravate|넥타이
+to confess|confesar|umamin|avouer|고백하다
+to fall|caer|mahulog|tomber|떨어지다
+to plant|plantar|magtanim|planter|심다
+to repair|reparar|ayusin|réparer|수리하다
+to protect|proteger|protektahan|protéger|보호하다
+to proceed|proceder|magpatuloy|procéder|진행하다
+to pass|pasar|dumaan|passer|통과하다
+to improve|mejorar|pagbutihin|améliorer|개선하다
+to solve|resolver|lutasin|résoudre|해결하다
+to practice|practicar|magsanay|pratiquer|연습하다
+to climb|trepar|umakyat|grimper|오르다
+to push|empujar|itulak|pousser|밀다
+to pull|jalar|hilahin|tirer|당기다
+to cross|cruzar|tumawid|traverser|건너다
+to rescue|rescatar|iligtas|sauver|구조하다
+to point|señalar|ituro|pointer|가리키다
+to guide|guiar|gumabay|guider|안내하다
+to shelter|refugiarse|magsilungan|se mettre à l'abri|피신하다
+to measure|medir|sukatin|mesurer|측정하다
+to trade|comerciar|makipagkalakalan|échanger|거래하다
+blouse|blusa|blusa|blouse|블라우스
+gloves|guantes|guwantes|gants|장갑
+noise|ruido|ingay|bruit|소음
+bridge|puente|tulay|pont|다리
+sound|sonido|tunog|son|소리
+commotion|alboroto|kaguluhan|agitation|동요
+protection|amparo|proteksyon|protection|보호
+trouble|apuro|gulo|ennuis|문제
+amazement|asombro|pagkamangha|stupéfaction|놀람
+chance|posibilidad|posibilidad|chance|가능성
+to trust|confiar|magtiwala|faire confiance|신뢰하다
+to apologize|disculparse|humingi ng paumanhin|s'excuser|사과하다
+to accept|aceptar|tanggapin|accepter|수용하다
+to agree|estar de acuerdo|sumang-ayon|être d'accord|동의하다
+to avoid|evitar|iwasan|éviter|피하다
+to bake|hornear|maghurno|faire cuire|굽다
+to borrow|pedir prestado|humiram|emprunter|빌리다
+to breathe|respirar|huminga|respirer|숨 쉬다
+to build|construir|magtayo|construire|짓다
+to cancel|cancelar|Kanselahin|annuler|취소하다
+embarrassment|vergüenza|kahihiyan|embarras|당황
+anger|enojo|galit|colère|화
+disappointment|decepción|pagkabigo|déception|실망
+gossip|chisme|tsismis|potins|험담
+beginning|comienzo|simula|début|시작
+commitment|compromiso|pangako|engagement|약속
+appointment|cita|tipanan|rendez-vous|약속
+conversation|conversación|pag-uusap|conversation|대화
+email|correo electrónico|email|e-mail|이메일
+job|empleo|trabaho|emploi|직업
+to change|cambiar|magbago|changer|변화하다
+to check|revisar|suriin|vérifier|확인하다
+to compare|comparar|ihambing|comparer|비교하다
+to complain|quejarse|magreklamo|se plaindre|불평하다
+to add up|sumar|pagbuuin|additionner|합산하다
+to decide|decidir|magpasya|décider|결정하다
+to describe|describir|ilarawan|décrire|설명하다
+to discover|descubrir|tuklasin|découvrir|발견하다
+to enter|entrar|pumasok|entrer|들어가다
+to escape|escapar|tumakas|s'échapper|탈출하다
+to anticipate|anticipar|asahan|anticiper|예상하다
+to forgive|perdonar|magpatawad|pardonner|용서하다
+to grow|crecer|lumaki|grandir|자라다
+to guess|adivinar|hulaan|deviner|추측하다
+to invite|invitar|mag-imbita|inviter|초대하다
+to join|unirse|sumali|rejoindre|가입하다
+to lend|prestar|magpahiram|prêter|빌려주다
+to look for|buscar|hanapin|chercher|찾다
+to miss|extrañar|mangulila|manquer|그리워하다
+to offer|ofrecer|mag-alok|offrir|권하다
+hidden|oculto|nakatago|caché|숨겨진
+distant|lejano|malayo|loin|먼
+wild|silvestre|ligaw|sauvage|야생의
+available|disponible|magagamit|disponible|사용 가능
+busy|ocupado|abala|occupé|바쁘다
+careful|cuidadoso|maingat|prudent|주의 깊은
+cheap|barato|mura|bon marché|값이 싼
+obvious|evidente|halata|évident|분명한
+comfortable|cómodo|komportable|confortable|편안한
+exact|exacto|eksakto|exact|정확한
+button|botón|butones|bouton|단추
+envelope|sobre|sobre|enveloppe|봉투
+package|paquete|pakete|colis|패키지
+eyeglasses|lentes|salamin|lunettes|안경
+magazine|revista|magasin|revue|잡지
+finger|dedo|daliri|doigt|손가락
+ice|hielo|yelo|glace|얼음
+ink|tinta|tinta|encre|잉크
+mailbox|buzón|kahon ng sulat|boîte aux lettres|사서함
+truck|camión|trak|camion|트럭
+to plan|planear|magplano|planifier|계획하다
+to prepare|preparar|maghanda|préparer|준비하다
+to promise|prometer|mangako|promettre|약속하다
+to receive|recibir|tumanggap|recevoir|받다
+to refuse|rechazar|tumanggi|refuser|거절하다
+to relax|relajarse|magrelaks|se détendre|긴장을 풀다
+to rent|alquilar|umupa|louer|임대하다
+to repeat|repetir|ulitin|répéter|반복하다
+to rest|descansar|magpahinga|se reposer|쉬다
+to save money|ahorrar|mag-ipon ng pera|économiser de l'argent|돈을 절약하다
+to shop|ir de compras|mamili|faire du shopping|쇼핑하다
+to spend|gastar|gumastos|dépenser|지출하다
+to touch|tocar|hawakan|toucher|만지다
+to understand|entender|maintindihan|comprendre|이해하다
+to win|ganar|manalo|gagner|이기다
+to add|agregar|idagdag|ajouter|추가하다
+to believe|creer|maniwala|croire|믿다
+to belong|pertenecer|nabibilang|appartenir|속하다
+to catch|atrapar|mahuli|attraper|잡다
+to celebrate|celebrar|magdiwang|célébrer|축하하다
+drawer|cajón|kahon ng mesa|tiroir|서랍
+sidewalk|acera|bangketa|trottoir|보도
+padlock|candado|kandado|cadenas|맹꽁이 자물쇠
+helmet|casco|helmet|casque|헬멧
+brush|cepillo|sipilyo|brosse|브러시
+seat|asiento|upuan|siège|좌석
+exit|salida|labasan|sortie|출구
+wire|alambre|kawad|fil|철사
+ring|anillo|singsing|anneau|반지
+post office|oficina de correos|tanggapan ng koreo|bureau de poste|우체국
+to collect|coleccionar|mangolekta|collecter|모으다
+to cost|costar|magkahalaga|coûter|비용이 들다
+to cover|cubrir|takpan|couvrir|씌우다
+to create|crear|lumikha|créer|만들다
+to draw|dibujar|gumuhit|dessiner|그리다
+to drop|dejar caer|maihulog|laisser tomber|떨어뜨리다
+to earn money|ganar dinero|kumita ng pera|gagner de l'argent|돈을 벌다
+to enjoy|disfrutar|magsaya|profiter|즐기다
+to fill|llenar|punan|remplir|채우다
+to fly|volar|lumipad|voler|날다
+forest|bosque|kagubatan|forêt|숲
+breeze|brisa|simoy ng hangin|brise|미풍
+building|edificio|gusali|bâtiment|건물
+business|negocio|negosyo|entreprise|사업
+pitcher|jarra|pitsel|pichet|물주전자
+pantry|despensa|dispensa|garde-manger|식료품 저장실
+stew|guiso|nilaga|ragoût|스튜
+loaf|hogaza|tinapay|miche de pain|빵 한 덩어리
+kettle|tetera|takure|bouilloire|주전자
+doorway|umbral|pintuan|porte|출입구
+to get dressed|vestirse|magbihis|s'habiller|옷을 입다
+to lift|levantar|buhatin|soulever|들어 올리다
+to lock|cerrar con llave|ikandado|verrouiller|잠그다
+to pack|empacar|mag-empake|emballer|포장하다
+to pick up|recoger|pulutin|ramasser|줍다
+to sell|vender|magbenta|vendre|팔다
+to sign|firmar|pumirma|signer|서명하다
+to stand up|ponerse de pie|tumayo|se lever|일어서다
+to throw away|tirar|itapon|jeter|버리다
+to turn off|apagar|patayin|éteindre|끄다
+to turn on|encender|buksan|allumer|켜다
+to unpack|desempacar|i-unpack|déballer|짐 등에서 꺼내다
+to unlock|abrir con llave|buksan gamit ang susi|déverrouiller|잠금을 풀다
+to deliver|entregar|ihatid|livrer|배달하다
+to divide|dividir|hatiin|diviser|나누다
+to exchange|intercambiar|palitan|échanger|교환하다
+to include|incluir|isama|inclure|포함하다
+to increase|aumentar|tumaas|augmenter|증가하다
+to introduce|presentar|ipakilala|présenter|소개하다
+to lead|liderar|mamuno|diriger|이끌다
+dangerous|peligroso|mapanganib|dangereux|위험한
+different|diferente|magkaiba|différent|다른
+complicated|complicado|kumplikado|compliqué|복잡한
+expensive|caro|mahal|cher|값비싼
+healthy|saludable|malusog|en bonne santé|건강한
+heavy|pesado|mabigat|lourd|무거운
+important|importante|mahalaga|important|중요한
+late|atrasado|huli na|en retard|늦은
+possible|posible|posible|possible|가능한
+same|igual|pareho|même|같은
+sleeve|manga|manggas|manche|소매
+shoulder|hombro|balikat|épaule|어깨
+wound|herida|sugat|blessure|상처
+breath|aliento|hininga|haleine|호흡
+merchant|comerciante|mangangalakal|marchand|상인
+cart|carreta|kariton|charrette|카트
+crossroads|cruce|sangang-daan|carrefour|교차로
+workshop|taller|pagawaan|atelier|작업장
+market stall|puesto de mercado|puwesto sa palengke|étal de marché|시장 매점
+lesson|lección|aralin|leçon|수업
+to mention|mencionar|banggitin|mentionner|언급하다
+to order|pedir|umorder|commander|주문하다
+to report|informar|iulat|signaler|보고하다
+to publish|publicar|ilathala|publier|출판하다
+to reach|alcanzar|maabot|atteindre|도달하다
+to return|regresar|bumalik|revenir|돌아오다
+to review|repasar|balikan ang aralin|revoir|복습하다
+to request|solicitar|humiling|demander|요청하다
+to select|seleccionar|pumili|sélectionner|선택하다
+to travel|viajar|maglakbay|voyager|여행하다
+to update|actualizar|i-update|mettre à jour|업데이트하다
+to vote|votar|bumoto|voter|투표하다
+to weigh|pesar|timbangin|peser|무게를 재다
+to wonder|preguntarse|magtaka|se demander|궁금하다
+to check in|registrarse|magparehistro|s'enregistrer|체크인하다
+to download|descargar|mag-download|télécharger|다운로드하다
+to upload|subir|mag-upload|mettre en ligne|업로드하다
+to print|imprimir|mag-print|imprimer|인쇄하다
+to reserve|reservar|magpareserba|réserver|예약하다
+to schedule|programar|mag-iskedyul|planifier|일정을 잡다
+form|formulario|formularyo|formulaire|양식
+message|mensaje|mensahe|message|메시지
+promise|promesa|pangako|promesse|약속
+answer|respuesta|sagot|réponse|답변
+drizzle|llovizna|ambon|bruine|이슬비
+thunder|trueno|kulog|tonnerre|천둥
+sunrise|amanecer|pagsikat ng araw|lever du soleil|해돋이
+twilight|crepúsculo|takipsilim|crépuscule|어스름
+translator|traductor|tagasalin|traducteur|역자
+address|dirección|address|adresse|주소
+to charge a phone|cargar un teléfono|i-charge ang telepono|recharger un téléphone|전화를 충전하다
+to plug in|enchufar|isaksak|se brancher|플러그를 꽂다
+to sign in|iniciar sesión|mag-sign in|se connecter|로그인하다
+to sign out|cerrar sesión|mag-sign out|se déconnecter|로그아웃하다
+to copy|copiar|kopyahin|copier|복사하다
+to paste|pegar|i-paste|coller|붙여넣다
+to click|hacer clic|mag-click|cliquer|클릭하다
+to press|presionar|pindutin|appuyer|누르다
+to delete|borrar|burahin|supprimer|삭제하다
+to install|instalar|mag-install|installer|설치하다
+agreement|acuerdo|kasunduan|accord|합의
+advantage|ventaja|kalamangan|avantage|이점
+attitude|actitud|saloobin|attitude|태도
+behavior|comportamiento|pag-uugali|comportement|행동
+cause|causa|dahilan|cause|원인
+choice|elección|pagpili|choix|선택
+community|comunidad|pamayanan|communauté|지역 사회
+decision|decisión|desisyon|décision|결정
+difference|diferencia|pagkakaiba|différence|차이점
+environment|medio ambiente|kapaligiran|environnement|환경
+account|cuenta|account|compte|계정
+bill|factura|bayarin|facture|청구서
+border|frontera|hangganan|frontière|국경
+customer|cliente|kostumer|client|고객
+document|documento|dokumento|document|문서
+emergency|emergencia|emerhensiya|urgence|비상
+employee|empleado|empleyado|employé|직원
+employer|empleador|amo|employeur|고용주
+neighborhood|vecindario|kapitbahayan|quartier|동네
+receipt|recibo|resibo|reçu|영수증
+to advise|aconsejar|payuhan|conseiller|권하다
+to allow|permitir|payagan|permettre|허용하다
+to apply|postularse|mag-apply|postuler|지원하다
+to arrange|coordinar|ayusin|arranger|마련하다
+to behave|comportarse|umasal|se comporter|행동하다
+to disagree|discrepar|hindi sumang-ayon|être en désaccord|동의하지 않다
+to exercise|hacer ejercicio|mag-ehersisyo|faire de l'exercice|운동하다
+to graduate|graduarse|magtapos|obtenir un diplôme|졸업하다
+to interview|entrevistar|interbyuhin|interviewer|인터뷰하다
+to pay attention|prestar atención|magbigay-pansin|faire attention|주의를 기울이다
+accurate|preciso|tumpak|précis|정확한
+aware|consciente|may kamalayan|conscient|알고 있는
+confident|seguro de sí mismo|may tiwala sa sarili|confiant|자신 있는
+effective|eficaz|mabisa|efficace|효과적인
+fair|justo|patas|équitable|공정한
+flexible|flexible|nababaluktot|flexible|유연한
+independent|independiente|malaya|indépendant|독립적인
+likely|probable|malamang|probable|~할 것 같은
+responsible|responsable|responsable|responsable|책임이 있는
+successful|exitoso|matagumpay|réussi|성공적인
+experience|experiencia|karanasan|expérience|경험
+goal|meta|layunin|but|목표
+habit|hábito|ugali|habitude|습관
+idea|idea|ideya|idée|아이디어
+information|información|impormasyon|information|정보
+opportunity|oportunidad|pagkakataon|opportunité|기회
+opinion|opinión|opinyon|avis|의견
+problem|problema|problema|problème|문제
+reason|razón|dahilan|raison|이유
+result|resultado|resulta|résultat|결과
+afraid|asustado|takot|effrayé|두려워하는
+angry|enojado|galit|en colère|화난
+bored|aburrido|nababagot|ennuyé|지루한
+excited|emocionado|sabik|excité|흥분한
+nervous|nervioso|kinakabahan|nerveux|불안한
+proud|orgulloso|ipinagmamalaki|fier|자랑스러운
+surprised|sorprendido|nagulat|surpris|놀란
+useful|útil|kapaki-pakinabang|utile|유용한
+useless|inútil|walang silbi|inutile|쓸모 없는
+necessary|necesario|kailangan|nécessaire|필요한
+battery|batería|baterya|batterie|배터리
+charger|cargador|charger|chargeur|충전기
+password|contraseña|password|mot de passe|비밀번호
+screen|pantalla|screen|écran|화면
+website|sitio web|website|site web|웹사이트
+application|aplicación|aplikasyon|application|애플리케이션
+file|archivo|file|fichier|파일
+folder|carpeta|folder|dossier|폴더
+keyboard|teclado|keyboard|clavier|키보드
+internet|internet|internet|Internet|인터넷
+solution|solución|solusyon|solution|해결책
+success|éxito|tagumpay|succès|성공
+tradition|tradición|tradisyon|tradition|전통
+value|valor|halaga|valeur|값
+challenge|desafío|hamon|défi|도전
+consequence|consecuencia|kahihinatnan|conséquence|결과
+evidence|evidencia|ebidensya|preuve|증거
+method|método|paraan|méthode|방법
+responsibility|responsabilidad|responsibilidad|responsabilité|책임
+relationship|relación|relasyon|relation|관계
+to attach|adjuntar|ilakip|attacher|붙이다
+to charge|cobrar|singilin|facturer|요금을 청구하다
+to edit|editar|i-edit|éditer|편집하다
+to forward|reenviar|ipasa|transmettre|전달하다
+to restart|reiniciar|i-restart|redémarrer|다시 시작하다
+to scan|escanear|i-scan|scanner|스캔하다
+to scroll|desplazarse|mag-scroll|faire défiler|스크롤하다
+to swipe|deslizar|mag-swipe|glisser|스와이프하다
+to text|enviar un mensaje de texto|mag-text|envoyer un SMS|문자를 보내다
+to zoom|acercar|mag-zoom|zoomer|확대/축소하다
+argument|argumento|argumento|argument|논거
+article|artículo|artikulo|article|기사
+background|antecedentes|background|arrière-plan|배경
+benefit|beneficio|benepisyo|avantage|혜택
+budget|presupuesto|badyet|budget|예산
+career|carrera|karera|carrière|직업
+citizen|ciudadano|mamamayan|citoyen|시민
+culture|cultura|kultura|culture|문화
+detail|detalle|detalye|détail|세부 사항
+education|educación|edukasyon|éducation|교육
+airport|aeropuerto|paliparan|aéroport|공항
+bank|banco|bangko|banque|은행
+pharmacy|farmacia|botika|pharmacie|약국
+hospital|hospital|ospital|hôpital|병원
+hotel|hotel|hotel|hôtel|호텔
+restaurant|restaurante|restawran|restaurant|식당
+station|estación|estasyon|gare|역
+ticket|boleto|tiket|billet|표
+traffic|tráfico|trapiko|trafic|교통
+trip|viaje|biyahe|voyage|여행
+to book a room|reservar una habitación|magpareserba ng kuwarto|réserver une chambre|방을 예약하다
+to board|abordar|sumakay|embarquer|탑승하다
+to depart|partir|umalis|partir|출발하다
+to land|aterrizar|lumapag|atterrir|착륙하다
+to miss a flight|perder un vuelo|maiwan sa lipad|rater un vol|비행기를 놓치다
+to cancel a reservation|cancelar una reserva|kanselahin ang reserbasyon|annuler une réservation|예약을 취소하다
+to exchange money|cambiar dinero|magpalit ng pera|échanger de l'argent|환전하다
+to ask for directions|pedir indicaciones|magtanong ng direksyon|demander son chemin|길을 묻다
+to rent a car|alquilar un auto|umarkila ng kotse|louer une voiture|차를 렌트하다
+to check a bag|facturar una maleta|mag-check in ng maleta|enregistrer un bagage|수하물을 부치다
+traditional|tradicional|tradisyonal|traditionnel|전통적인
+unusual|inusual|hindi pangkaraniwan|inhabituel|특이한
+valuable|valioso|mahalaga|précieux|귀중한
+willing|dispuesto|payag|disposé|자발적인
+complex|complejo|kumplikado|complexe|복잡한
+creative|creativo|malikhain|créatif|창의적인
+efficient|eficiente|mabisa|efficace|효율적인
+equivalent|equivalente|katumbas|équivalent|동등한
+essential|esencial|mahalaga|essentiel|필수적인
+familiar|familiar|pamilyar|familier|친숙한
+effect|efecto|epekto|effet|효과
+effort|esfuerzo|pagsisikap|effort|노력
+example|ejemplo|halimbawa|exemple|예
+future|futuro|kinabukasan|avenir|미래
+government|gobierno|pamahalaan|gouvernement|정부
+health|salud|kalusugan|santé|건강
+history|historia|kasaysayan|histoire|역사
+knowledge|conocimiento|kaalaman|connaissance|지식
+law|ley|batas|loi|법
+level|nivel|antas|niveau|수준
+crowded|lleno de gente|matao|bondé|붐비는
+delayed|retrasado|naantala|retardé|지연된
+direct|directo|direkta|direct|직접
+foreign|extranjero|dayuhan|étranger|외국의
+local|local|lokal|locale|현지의
+one-way|solo de ida|one-way|aller simple|편도
+round-trip|de ida y vuelta|balikan|aller-retour|왕복
+international|internacional|internasyonal|international|국제적인
+domestic|nacional|domestiko|intérieur|국내의
+urgent|urgente|apurahan|urgent|긴급한
+Where is...?|¿Dónde está...?|Nasaan ang...?|Où est...?|어디에...?
+How much does it cost?|¿Cuánto cuesta?|Magkano ito?|Combien ça coûte?|비용은 얼마입니까?
+I need help.|Necesito ayuda.|Kailangan ko ng tulong.|J'ai besoin d'aide.|도움이 필요해요.
+I have a reservation.|Tengo una reserva.|May reserbasyon ako.|J'ai une réservation.|예약이 있어요.
+Can you repeat that?|¿Puede repetir eso?|Maaari mo bang ulitin iyon?|Pouvez-vous répéter cela ?|반복해 주실 수 있나요?
+Please speak slowly.|Hable despacio, por favor.|Magsalita nang dahan-dahan, pakiusap.|S'il vous plaît, parlez lentement.|천천히 말씀해주세요.
+I don't understand.|No entiendo.|Hindi ko naiintindihan.|Je ne comprends pas.|이해하지 못하겠어요.
+Which way is...?|¿Por dónde queda...?|Saan ang daan papunta sa...?|Comment aller à... ?|어느 쪽이...?
+What time does it leave?|¿A qué hora sale?|Anong oras ito aalis?|A quelle heure part-il ?|몇 시에 떠나나요?
+Is this seat free?|¿Está libre este asiento?|Bakante ba ang upuang ito?|Cette place est-elle libre ?|이 자리가 비어 있나요?
+limit|límite|limitasyon|limite|한계
+material|material|materyal|matériel|재료
+memory|memoria|alaala|mémoire|기억
+news|noticias|balita|nouvelles|소식
+pattern|patrón|pattern|modèle|무늬
+plan|plan|plano|plan|계획
+policy|política|patakaran|politique|정책
+population|población|populasyon|population|인구
+purpose|propósito|layunin|but|목적
+research|investigación|pagsisiyasat|recherche|연구
+medicine|medicamento|gamot|médicament|약
+prescription|receta|reseta|ordonnance|처방
+symptom|síntoma|sintomas|symptôme|증상
+pain|dolor|sakit|douleur|통증
+allergy|alergia|alerhiya|allergie|알레르기
+fever|fiebre|lagnat|fièvre|발열
+cough|tos|ubo|toux|기침
+insurance|seguro|seguro|assurance|보험
+doctor|médico|doktor|médecin|의사
+nurse|enfermero|nars|infirmière|간호사
+risk|riesgo|panganib|risque|위험
+rule|regla|tuntunin|règle|규칙
+skill|habilidad|kakayahan|compétence|기량
+society|sociedad|lipunan|société|사회
+source|fuente|pinagmulan|source|원천
+system|sistema|sistema|système|체계
+technology|tecnología|teknolohiya|technologie|기술
+transportation|transporte|transportasyon|transport|운송
+truth|verdad|katotohanan|vérité|진실
+viewpoint|punto de vista|pananaw|point de vue|견해
+salary|salario|sahod|salaire|급여
+interview|entrevista|interbyu|entretien|회견
+résumé|currículum|résumé|CV|이력서
+work shift|turno de trabajo|oras ng trabaho|quart de travail|근무 교대
+deadline|fecha límite|deadline|date limite|마감일
+meeting|reunión|pulong|réunion|회의
+project|proyecto|proyekto|projet|프로젝트
+task|tarea|gawain|tâche|일
+training|capacitación|pagsasanay|entraînement|훈련
+vacation|vacaciones|bakasyon|vacances|휴가
+to apply for a job|solicitar empleo|mag-apply ng trabaho|postuler pour un emploi|일자리에 지원하다
+to hire|contratar|tanggapin sa trabaho|embaucher|고용하다
+to fire an employee|despedir a un empleado|tanggalin sa trabaho|licencier un employé|직원을 해고하다
+to quit a job|renunciar a un trabajo|magbitiw sa trabaho|quitter un emploi|직장을 그만두다
+to retire|jubilarse|magretiro|prendre sa retraite|은퇴하다
+to negotiate a salary|negociar un salario|makipag-usap sa sahod|négocier un salaire|급여를 협상하다
+to file a document|presentar un documento|maghain ng dokumento|déposer un document|서류를 제출하다
+to sign a contract|firmar un contrato|pumirma ng kontrata|signer un contrat|계약서에 서명하다
+to attend a meeting|asistir a una reunión|dumalo sa pulong|assister à une réunion|회의에 참석하다
+to meet a deadline|cumplir un plazo|umabot sa deadline|respecter un délai|마감일을 지키다
+formal|formal|pormal|formel|공식적인
+general|general|pangkalahatan|général|일반적인
+logical|lógico|lohikal|logique|논리적
+natural|natural|natural|naturel|자연스러운
+practical|práctico|praktikal|pratique|현실적인
+reliable|confiable|maaasahan|fiable|믿을 수 있는
+specific|específico|tiyak|spécifique|특정한
+temporary|temporal|pansamantala|temporaire|일시적인
+typical|típico|tipikal|typique|전형적인
+unfair|injusto|hindi patas|injuste|불공정
+ability|capacidad|kakayahan|capacité|능력
+access|acceso|access|accès|접근
+action|acción|aksyon|action|행동
+activity|actividad|aktibidad|activité|활동
+amount|cantidad|halaga|montant|양
+approach|enfoque|diskarte|approche|접근법
+area|área|lugar|zone|영역
+authority|autoridad|awtoridad|autorité|권한
+balance|equilibrio|balanse|équilibre|균형
+case|caso|kaso|cas|사례
+to calculate|calcular|kalkulahin|calculer|계산하다
+to challenge|desafiar|hamunin|défier|도전하다
+to communicate|comunicar|makipag-usap|communiquer|의사소통하다
+to concentrate|concentrarse|tumutok|se concentrer|집중하다
+to consider|considerar|isaalang-alang|considérer|고려하다
+to convince|convencer|kumbinsihin|convaincre|확신시키다
+to cooperate|cooperar|makipagtulungan|coopérer|협력하다
+to criticize|criticar|pumuna|critiquer|흠잡다
+to defend|defender|ipagtanggol|défendre|지키다
+to depend|depender|umasa|dépendre|의존하다
+to yawn|bostezar|humikab|bâiller|하품하다
+to scare away|ahuyentar|itaboy|faire fuir|쫓아내다
+to overwhelm|agobiar|bigatan ng loob|accabler|압도하다
+to boast|alardear|magyabang|se vanter|자랑하다
+to lack|carecer|magkulang|manquer de|부족하다
+to amaze|asombrar|pamanghain|étonner|놀라게 하다
+to please|complacer|palugurin|faire plaisir à|기쁘게 하다
+to reconcile|conciliar|pagkasunduin|réconcilier|화해시키다
+to drown|ahogar|lunurin|noyer|물에 빠뜨리다
+to vouch for|avalar|managot para sa|se porter garant de|보증하다
+relief|alivio|ginhawa|soulagement|안도감
+craving|antojo|pananabik|envie irrésistible|갈망
+affection|cariño|pagmamahal|affection|애정
+rest|descanso|pahinga|repos|휴식
+unease|desasosiego|pagkabalisa|malaise|불안감
+longing|anhelo|pangungulila|désir ardent|그리움
+downpour|aguacero|buhos ng ulan|averse|폭우
+well-being|bienestar|kagalingan|bien-être|건강과 행복
+earring|arete|hikaw|boucle d’oreille|귀걸이
+handle|asa|hawakan|anse|손잡이
+to prevent|prevenir|pigilan|empêcher|예방하다
+to recommend|recomendar|magrekomenda|recommander|추천하다
+to reduce|reducir|bawasan|réduire|줄이다
+to troubleshoot|solucionar problemas|lutasin ang problema|dépanner|문제를 해결하다
+to support|apoyar|suportahan|soutenir|지원하다
+to translate|traducir|isalin|traduire|번역하다
+to volunteer|ofrecerse|magboluntaryo|faire du bénévolat|자원봉사하다
+to adapt|adaptarse|umangkop|s'adapter|적응하다
+to achieve|lograr|makamit|atteindre|성취하다
+to admit|admitir|umamin|admettre|인정하다
+data|datos|datos|données|데이터
+debate|debate|debate|débat|토론
+demand|demanda|demand|demande|수요
+direction|rumbo|direksyon|direction|방향
+economy|economía|ekonomiya|économie|경제
+energy|energía|enerhiya|énergie|에너지
+event|evento|kaganapan|événement|이벤트
+fact|hecho|katotohanan|fait|사실
+freedom|libertad|kalayaan|liberté|자유
+growth|crecimiento|paglago|croissance|성장
+to compromise|llegar a un acuerdo|magkasundo|faire des compromis|타협하다
+to conclude|concluir|tapusin|conclure|끝내다
+to confirm|confirmar|kumpirmahin|confirmer|확인하다
+to contribute|contribuir|mag-ambag|contribuer|기여하다
+to demonstrate|demostrar|ipakita|démontrer|입증하다
+to evaluate|evaluar|tasahin|évaluer|평가하다
+to identify|identificar|kilalanin|identifier|식별하다
+to interpret|interpretar|bigyang kahulugan|interpréter|해석하다
+to negotiate|negociar|makipag-ayos|négocier|협상하다
+to participate|participar|lumahok|participer|참가하다
+to propose|proponer|magmungkahi|proposer|제안하다
+to recognize|reconocer|kilalanin|reconnaître|인정하다
+to replace|reemplazar|palitan|remplacer|바꾸다
+to represent|representar|kumatawan|représenter|대표하다
+to require|requerir|nangangailangan|exiger|필요하다
+to summarize|resumir|ibuod|résumer|요약하다
+to verify|verificar|patunayan|vérifier|확인하다
+to warn|advertir|magbabala|avertir|경고하다
+to connect|conectar|kumonekta|se connecter|연결하다
+to contain|contener|naglalaman ng|contenir|포함하다
+as far as I know|hasta donde sé|sa pagkakaalam ko|Pour autant que je sache|내가 아는 한
+on the other hand|por otro lado|sa kabilang banda|d'autre part|반면에
+in my opinion|en mi opinión|sa aking palagay|à mon avis|내 생각에는
+it depends on...|depende de...|depende sa...|ça dépend de...|그것은 ...에 달려있다
+I completely agree|estoy totalmente de acuerdo|lubos akong sumasang-ayon|Je suis tout à fait d'accord|나는 전적으로 동의한다
+I disagree|no estoy de acuerdo|hindi ako sang-ayon|je ne suis pas d'accord|나는 동의하지 않는다
+what do you mean?|¿qué quieres decir?|anong ibig mong sabihin|que veux-tu dire ?|무슨 뜻이에요?
+could you explain that?|¿podrías explicar eso?|pwede mo bang ipaliwanag yun?|peux-tu expliquer ça ?|그걸 설명해 주시겠어요?
+let me think|déjame pensar|pag-isipan ko|laisse-moi réfléchir|생각해볼게
+that makes sense|eso tiene sentido|may katuturan iyan|ça a du sens|그게 말이 되네요
+impact|impacto|epekto|impact|영향
+issue|asunto|usapin|problème|문제
+leader|líder|pinuno|chef|지도자
+media|medios de comunicación|media|médias|미디어
+option|opción|opsyon|option|옵션
+organization|organización|organisasyon|organisation|조직
+performance|rendimiento|pagganap|performance|성능
+period|período|panahon|période|기간
+pressure|presión|presyon|pression|압력
+process|proceso|proseso|processus|프로세스
+to continue|continuar|magpatuloy|continuer|계속하다
+to control|controlar|kontrolin|contrôler|통제하다
+to define|definir|tukuyin|définir|정의하다
+to determine|determinar|matukoy|déterminer|결정하다
+to establish|establecer|magtatag|établir|설립하다
+to express|expresar|ipahayag|exprimer|표현하다
+to prioritize|priorizar|unahin|prioriser|우선순위를 정하다
+to imagine|imaginar|isipin|imaginer|상상하다
+to maintain|mantener|panatilihin|maintenir|유지하다
+to persuade|persuadir|manghikayat|persuader|설득하다
+to predict|predecir|hulaan|prédire|예측하다
+to produce|producir|gumawa|produire|생산하다
+to react|reaccionar|magreaksyon|réagir|반응하다
+to realize|darse cuenta|mapagtanto|se rendre compte|깨닫다
+to reflect|reflexionar|magnilay|réfléchir|곰곰이 생각하다
+to relate|relacionar|iugnay|mettre en relation|관련짓다
+to remove|quitar|tanggalin|supprimer|제거하다
+to respond|contestar|tumugon|répondre|대답하다
+to reveal|revelar|ihayag|révéler|드러내다
+to suggest|sugerir|magmungkahi|suggérer|제안하다
+product|producto|produkto|produit|제품
+quality|calidad|kalidad|qualité|품질
+report|informe|ulat|rapport|보고서
+resource|recurso|mapagkukunan|ressource|자원
+feedback|comentarios|puna|retour|피드백
+safety|seguridad|seguridad|sécurité|안전
+standard|norma|tuntunin|standard|기준
+statement|declaración|pahayag|déclaration|성명
+strategy|estrategia|diskarte|stratégie|전략
+structure|estructura|istraktura|structure|구조
+to rate|calificar|bigyan ng marka|évaluer|평가하다
+to classify|clasificar|uriin|classer|나누다
+to combine|combinar|pagsamahin|combiner|결합하다
+to complete|completar|kumpletuhin|compléter|완료하다
+to conduct|realizar|isagawa|mener|수행하다
+to assemble|ensamblar|buoin|assembler|모으다
+to contact|contactar|makipag-ugnayan|contacter|연락하다
+to decrease|disminuir|bumaba|diminuer|감소하다
+to distinguish|distinguir|makilala|distinguer|구별하다
+to emphasize|enfatizar|bigyang-diin|souligner|강조하다`;
+const LANGS = {en:'English', es:'Spanish', fil:'Filipino', fr:'French', ko:'Korean'};
+const CODES = {en:'EN', es:'ES', fil:'FIL', fr:'FR', ko:'KO'};
+const LI = {en:0, es:1, fil:2, fr:3, ko:4};
+const CONCEPTS = RAW.trim().split('\n').map(l => l.split('|').map(s => s.trim()));
+const wordOf = (c, l) => c[LI[l]];
+const LETTERS = {
+  es:'abcdefghijlmnopqrstuvyzñáéíóú', fr:'abcdefghijlmnopqrstuvéèàçêô', fil:'abdeghiklmnopstuwyng',
+  en:'abcdefghijklmnopqrstuvwxyz', ko:'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅏㅓㅗㅜㅡㅣ'
+};
+function shuffle(arr, rnd=Math.random){for(let i=arr.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+
+let settings = {name:'You', speak:'en', learn:'es', streak:0, muted:false};
+try { const s = JSON.parse(localStorage.getItem('languageio-settings') || 'null'); if (s) Object.assign(settings, s); } catch (e) {}
+if (!LANGS[settings.speak]) settings.speak = 'en';
+if (!LANGS[settings.learn]) settings.learn = 'es';
+function saveSettings(){ try { localStorage.setItem('languageio-settings', JSON.stringify(settings)); } catch (e) {} }
+
+/* ----- curriculum: the course goes in order, 10 words per lesson.
+   A word is learned after 2 correct duel answers; learn all 10 and the next lesson opens.
+   Duels use the current lesson's words 70% of the time and review older lessons 30% of the time. ----- */
+const LESSON_SIZE = 10, LESSONS = Math.ceil(CONCEPTS.length / LESSON_SIZE), MASTERY = 2;
+let progress = {lesson: 0, hits: {}};
+let progressFor = '';
+const progressKey = () => progressFor;
+function loadProgress(learn = settings.learn, speak = settings.speak){
+  progressFor = `languageio-course-${learn}-${speak}`;
+  progress = {lesson: 0, hits: {}};
+  try { const p = JSON.parse(localStorage.getItem(progressKey()) || 'null'); if (p && typeof p.lesson === 'number') progress = {lesson: clamp(p.lesson, 0, LESSONS-1), hits: p.hits || {}}; } catch (e) {}
+}
+function saveProgress(){ try { localStorage.setItem(progressKey(), JSON.stringify(progress)); } catch (e) {} }
+const lessonIdx = n => { const out = []; for (let i = n*LESSON_SIZE; i < Math.min(CONCEPTS.length, (n+1)*LESSON_SIZE); i++) out.push(i); return out; };
+const learnedCount = () => lessonIdx(progress.lesson).filter(i => (progress.hits[i] || 0) >= MASTERY).length;
+
+let lastQ = -1;
+function pickConcept(){
+  const review = progress.lesson > 0 && Math.random() < 0.3;
+  let pool;
+  if (review) {
+    // favour the most recent lessons, but reach back through the whole course
+    const back = Math.min(progress.lesson, 1 + Math.floor(Math.pow(Math.random(), 2) * progress.lesson));
+    pool = lessonIdx(progress.lesson - back);
+  } else {
+    const cur = lessonIdx(progress.lesson);
+    const unlearned = cur.filter(i => (progress.hits[i] || 0) < MASTERY);
+    pool = unlearned.length && Math.random() < 0.75 ? unlearned : cur;
+  }
+  if (pool.length > 1) pool = pool.filter(i => i !== lastQ);
+  return lastQ = pool[Math.floor(Math.random()*pool.length)];
+}
+function makeQuestion(){
+  const ci = pickConcept(), c = CONCEPTS[ci];
+  const prompt = wordOf(c, settings.learn), answer = wordOf(c, settings.speak);
+  const used = new Set([answer]); const opts = [answer];
+  // distractors come from nearby lessons so they look like real choices
+  const lo = Math.max(0, (progress.lesson - 3)*LESSON_SIZE), hi = Math.min(CONCEPTS.length, (progress.lesson + 4)*LESSON_SIZE);
+  const near = shuffle(Array.from({length: hi - lo}, (_, k) => lo + k));
+  for (const oi of near.concat(shuffle(Array.from({length: CONCEPTS.length}, (_, k) => k)))) {
+    if (opts.length >= 4) break;
+    const o = CONCEPTS[oi], t = wordOf(o, settings.speak);
+    if (oi === ci || used.has(t) || wordOf(o, settings.learn) === prompt) continue;
+    used.add(t); opts.push(t);
+  }
+  shuffle(opts);
+  return {ci, prompt, answer, options: opts, correct: opts.indexOf(answer)};
+}
+function recordCorrect(ci){
+  const before = learnedCount();
+  progress.hits[ci] = (progress.hits[ci] || 0) + 1;
+  let unlocked = false;
+  if (learnedCount() >= lessonIdx(progress.lesson).length && progress.lesson < LESSONS - 1) { progress.lesson++; unlocked = true; }
+  saveProgress();
+  return {unlocked, newlyLearned: !unlocked && learnedCount() > before};
+}
+
+/* ================= helpers ================= */
+const rand = (a,b) => a + Math.random()*(b-a);
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const $ = id => document.getElementById(id);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= audio ================= */
+let AC = null, master = null, bossGain = null, nextNote = 0, noteIdx = 0, lastPop = 0;
+const MOTIF = [110, 130.81, 123.47, 103.83, 110, 98, 103.83, 82.41];
+function initAudio(){
+  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+  try {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    master = AC.createGain(); master.gain.value = settings.muted ? 0 : 0.9; master.connect(AC.destination);
+    bossGain = AC.createGain(); bossGain.gain.value = 0; bossGain.connect(master);
+    const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 340; lp.Q.value = 7;
+    const mix = AC.createGain(); mix.gain.value = 0.28;
+    const pulse = AC.createGain(); pulse.gain.value = 0.6;
+    [[55,'sawtooth'],[77.78,'sawtooth'],[41.2,'sine']].forEach(([f,t]) => { const o = AC.createOscillator(); o.type = t; o.frequency.value = f; o.connect(mix); o.start(); });
+    mix.connect(lp); lp.connect(pulse); pulse.connect(bossGain);
+    const lfo = AC.createOscillator(); lfo.frequency.value = 1.15; const lg = AC.createGain(); lg.gain.value = 0.4; lfo.connect(lg); lg.connect(pulse.gain); lfo.start();
+    const lfo2 = AC.createOscillator(); lfo2.frequency.value = 0.07; const l2 = AC.createGain(); l2.gain.value = 160; lfo2.connect(l2); l2.connect(lp.frequency); lfo2.start();
+  } catch (e) { AC = null; }
+}
+function tone(f, dur, type='sine', vol=0.15, slide=0, delay=0, dest){
+  if (!AC || settings.muted) return;
+  const t = AC.currentTime + delay;
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(f*slide, t+dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t+0.012); g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
+  o.connect(g); g.connect(dest || master); o.start(t); o.stop(t+dur+0.05);
+}
+const sfx = {
+  duel(){ tone(330,.12,'square',.07); tone(495,.18,'square',.07,0,.1); },
+  right(){ tone(660,.1,'triangle',.15); tone(990,.18,'triangle',.13,0,.08); },
+  wrong(){ tone(220,.28,'sawtooth',.07,.6); },
+  win(){ [523,659,784,1047].forEach((f,i) => tone(f,.2,'triangle',.12,0,i*.07)); },
+  lose(){ tone(300,.55,'sawtooth',.08,.4); },
+  crack(){ tone(160,.28,'square',.09,.45); },
+  pop(){ if (!AC) return; if (AC.currentTime - lastPop < 0.06) return; lastPop = AC.currentTime; tone(rand(720,900),.05,'sine',.04,1.4); },
+};
+let bossVol = 0;
+function audioStep(){
+  let vol = 0;
+  if (state === 'play' && player && !player.dead) {
+    for (const e of ents) {
+      if (e.streak >= 500 && !e.dead && e !== player) {
+        const d = Math.max(0, Math.hypot(e.x-player.x, e.y-player.y) - e.r - player.r);
+        const v = Math.pow(clamp(1 - d/1700, 0, 1), 1.6);
+        if (v > vol) vol = v;
+      }
+    }
+  }
+  bossVol += (vol - bossVol) * 0.05;
+  if (!AC) return;
+  bossGain.gain.setTargetAtTime(settings.muted ? 0 : vol*0.6, AC.currentTime, 0.3);
+  if (vol > 0.02 && AC.currentTime >= nextNote) {
+    if (nextNote < AC.currentTime - 0.2) nextNote = AC.currentTime + 0.05;
+    const f = MOTIF[noteIdx++ % MOTIF.length];
+    tone(f, 1.1, 'triangle', 0.35, 0, nextNote - AC.currentTime, bossGain);
+    tone(f/2, 1.1, 'sine', 0.3, 0, nextNote - AC.currentTime, bossGain);
+    nextNote += 0.78;
+  }
+}
+
+/* ================= world ================= */
+const WORLD = 4200, MIN_MASS = 12, BOT_COUNT = 26, PELLETS = 650, BUSH_R = 52, ROUND_TIME = 5;
+const radius = m => Math.sqrt(m) * 4.2;
+const NAMES = ['Luna','Mateo','Sofi','Bao','Kai','Nube','Pip','Rosa','Tito','Mika','Gus','Lola','Dani','Yuki','Omar','Inés','Remy','Paz','Teo','Coco','Nico','Vale','Sam','Juno','Ziggy','Bea','Fer','Min','Hana','Leo','Ari','Tomi'];
+let ents = [], pellets = [], bushes = [], duels = [], parts = [], floats = [], regrow = [];
+let player = null, state = 'menu', T = 0, nextId = 1, respawnT = 0, bossT = 0;
+let stats = null, lastPlayerPos = {x: WORLD/2, y: WORLD/2};
+
+function pickName(){
+  const taken = new Set(ents.map(e => e.name));
+  const free = NAMES.filter(n => !taken.has(n));
+  const pool = free.length ? free : NAMES;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function spawnPos(avoidPlayer){
+  for (let k=0; k<40; k++) {
+    const x = rand(120, WORLD-120), y = rand(120, WORLD-120);
+    if (!avoidPlayer || !player || player.dead || Math.hypot(x-player.x, y-player.y) > 750) return {x, y};
+  }
+  return {x: rand(120, WORLD-120), y: rand(120, WORLD-120)};
+}
+function mkEnt(o){
+  const p = spawnPos(!o.isPlayer);
+  const e = Object.assign({id: nextId++, x: p.x, y: p.y, vx: 0, vy: 0, mass: 20, r: 0, hue: 200, name: '',
+    isPlayer: false, duel: null, immune: 0, burst: 0, cracked: 0, slow: 0, bushCd: 0, hidden: false,
+    streak: 0, revenge: null, wob: Math.random()*100, dead: false, bot: null, boss: false}, o);
+  e.r = radius(e.mass);
+  return e;
+}
+function pickStreak(){ const r = Math.random(); return r<.45 ? 0 : r<.7 ? Math.floor(rand(10,49)) : r<.88 ? Math.floor(rand(50,99)) : Math.floor(rand(100,320)); }
+function randomBotMass(fresh){ const r = Math.random(); if (fresh) return r<.8 ? rand(12,40) : rand(60,180); return r<.6 ? rand(12,45) : r<.87 ? rand(60,260) : rand(300,800); }
+function makeBot(mass){
+  return mkEnt({mass, name: pickName(), hue: Math.floor(rand(0,360)), streak: pickStreak(),
+    bot: {acc: rand(.55,.9), spd: rand(.8,1.2), aggr: rand(.3,1), careful: rand(.3,1), think: 0, tx: 0, ty: 0, wx: 0, wy: 0}});
+}
+function makeBoss(){
+  return mkEnt({mass: rand(900,1300), name: 'La Sombra', hue: 272, streak: 500, boss: true,
+    bot: {acc: .86, spd: 1.1, aggr: .95, careful: .9, think: 0, tx: 0, ty: 0, wx: 0, wy: 0}});
+}
+function mkPellet(x, y, m=1){
+  const L = LETTERS[settings.learn] || LETTERS.es;
+  const h = Math.floor(rand(0,360));
+  return {x: x ?? rand(30, WORLD-30), y: y ?? rand(30, WORLD-30), vx: 0, vy: 0, m,
+    ch: L[Math.floor(Math.random()*L.length)], c: `hsl(${h},90%,70%)`, noEat: 0, noEatT: 0};
+}
+function buildWorld(){
+  ents = []; pellets = []; bushes = []; duels = []; parts = []; floats = []; regrow = []; player = null; respawnT = 0; bossT = 0;
+  for (let i=0; i<24; i++) {
+    let x, y, ok, tries = 0;
+    do { x = rand(220, WORLD-220); y = rand(220, WORLD-220); ok = bushes.every(b => Math.hypot(b.x-x, b.y-y) > 380); } while (!ok && ++tries < 50);
+    bushes.push({x, y, r: BUSH_R, seed: Math.random()*100, spikes: Array.from({length: 15}, () => rand(.86, 1.16))});
+  }
+  for (let i=0; i<PELLETS; i++) pellets.push(mkPellet());
+  for (let i=0; i<BOT_COUNT; i++) ents.push(makeBot(randomBotMass(false)));
+  ents.push(makeBoss());
+}
+function spawnPlayer(){
+  player = mkEnt({isPlayer: true, mass: 20, name: settings.name || 'You', hue: 42, streak: settings.streak, immune: 3});
+  for (let k=0; k<60; k++) {
+    const x = rand(300, WORLD-300), y = rand(300, WORLD-300);
+    if (ents.every(e => e.mass < 60 || Math.hypot(e.x-x, e.y-y) > 650)) { player.x = x; player.y = y; break; }
+  }
+  ents.push(player);
+  stats = {words: 0, duels: 0, peak: 20, start: T};
+}
+
+/* ================= input ================= */
+const mouse = {x: 0, y: 0, active: false};
+const cv = $('game'), ctx = cv.getContext('2d');
+cv.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+cv.addEventListener('pointerdown', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+cv.addEventListener('pointerup', e => { if (e.pointerType === 'touch') mouse.active = false; });
+cv.addEventListener('pointercancel', () => { mouse.active = false; });
+addEventListener('keydown', e => { if (e.key >= '1' && e.key <= '4') answer(+e.key - 1); });
+
+let W = 0, H = 0, DPR = 1;
+function resize(){ DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W*DPR; cv.height = H*DPR; cv.style.width = W+'px'; cv.style.height = H+'px'; }
+addEventListener('resize', resize); resize();
+
+/* ================= simulation ================= */
+function speedOf(e){ return 400*Math.pow(e.mass, -0.27) * (e.slow>0 ? 0.45 : 1) * (e.burst>0 ? 1.9 : 1); }
+
+function botThink(e, dt){
+  const b = e.bot; b.think -= dt; if (b.think > 0) return; b.think = rand(.18, .35);
+  const view = 420 + e.r*2.2;
+  let threat = null, td = 1e9, prey = null, ps = 0;
+  for (const o of ents) {
+    if (o === e || o.dead) continue;
+    const dx = o.x-e.x, dy = o.y-e.y;
+    if (Math.abs(dx) > view || Math.abs(dy) > view) continue;
+    const d = Math.hypot(dx, dy) - o.r - e.r;
+    const free = !o.duel && !o.hidden && o.immune <= 0;
+    // bold, accurate bots will poke a bigger blob to steal their own size from it
+    const bold = b.aggr > 0.85 && b.acc > 0.8 && o.mass < e.mass*4;
+    if (o.r > e.r*1.1 && !bold && !o.duel && o.immune <= 0.5 && d < 220 + o.r && d < td) { td = d; threat = o; }
+    if (free && e.r > o.r*1.1) { const s = o.mass/(d+80); if (s > ps) { ps = s; prey = o; } }
+    else if (free && bold && o.r > e.r*1.1) { const s = e.mass*0.6/(d+80); if (s > ps) { ps = s; prey = o; } }
+  }
+  if (threat && e.hidden) { b.tx = e.x; b.ty = e.y; return; }
+  if (threat) {
+    if (e.r < BUSH_R*0.95) {
+      let best = null, bd = 1e9;
+      for (const k of bushes) { const d = Math.hypot(k.x-e.x, k.y-e.y); if (d < bd) { bd = d; best = k; } }
+      if (best && bd < 450) { b.tx = best.x; b.ty = best.y; return; }
+    }
+    const dx = e.x-threat.x, dy = e.y-threat.y, d = Math.hypot(dx, dy) || 1;
+    b.tx = e.x + dx/d*300; b.ty = e.y + dy/d*300; return;
+  }
+  // bold big bots will ram a bush to flush out a juicy blob hiding in it
+  b.smash = null;
+  if (e.r > BUSH_R*1.25 && b.aggr > 0.6 && e.cracked <= 0) {
+    for (const k of bushes) {
+      if ((k.grow ?? 1) < 1 || Math.hypot(k.x-e.x, k.y-e.y) > view) continue;
+      const hider = ents.find(o => o.hidden && o !== e && Math.hypot(o.x-k.x, o.y-k.y) < k.r && o.mass > e.mass*0.08);
+      if (hider && (!prey || hider.mass > prey.mass)) { b.smash = k; b.tx = k.x; b.ty = k.y; return; }
+    }
+  }
+  if (prey && Math.random() < b.aggr + 0.2) { b.tx = prey.x + prey.vx*0.3; b.ty = prey.y + prey.vy*0.3; return; }
+  if (e.r < 140) {
+    let pp = null, pd = 1e9;
+    for (const p of pellets) { const dx = p.x-e.x, dy = p.y-e.y; if (Math.abs(dx) > 450 || Math.abs(dy) > 450) continue; const d = dx*dx+dy*dy; if (d < pd) { pd = d; pp = p; } }
+    if (pp) { b.tx = pp.x; b.ty = pp.y; return; }
+  }
+  if (!b.wx || Math.hypot(b.wx-e.x, b.wy-e.y) < 80 || Math.random() < 0.02) { b.wx = rand(200, WORLD-200); b.wy = rand(200, WORLD-200); }
+  b.tx = b.wx; b.ty = b.wy;
+}
+
+function moveStep(dt){
+  for (const e of ents) {
+    if (e.dead) continue;
+    if (e.duel) { e.vx = e.vy = 0; continue; }
+    let dx = 0, dy = 0, thr = 1;
+    if (e.isPlayer) {
+      const mx = mouse.x - W/2, my = mouse.y - H/2, d = Math.hypot(mx, my);
+      if (d > 1) { dx = mx/d; dy = my/d; }
+      thr = mouse.active ? clamp((d - 4)/(e.r*cam.z + 60), 0, 1) : 0;
+    } else {
+      botThink(e, dt);
+      const tx = e.bot.tx - e.x, ty = e.bot.ty - e.y, d = Math.hypot(tx, ty);
+      if (d > 1) { dx = tx/d; dy = ty/d; }
+      thr = d < 5 ? 0 : 1;
+      if (e.r > BUSH_R*1.25) {
+        for (const b of bushes) {
+          if (b === e.bot.smash) continue;
+          const bx = e.x-b.x, by = e.y-b.y, bd = Math.hypot(bx, by), lim = e.r + b.r + 70*e.bot.careful;
+          if (bd < lim && bd > 0) { const k = (lim-bd)/lim*2*e.bot.careful; dx += bx/bd*k; dy += by/bd*k; }
+        }
+        const n = Math.hypot(dx, dy); if (n > 0) { dx /= n; dy /= n; }
+      }
+    }
+    const sp = speedOf(e)*thr, k = Math.min(1, dt*7);
+    e.vx += (dx*sp - e.vx)*k; e.vy += (dy*sp - e.vy)*k;
+    e.x = clamp(e.x + e.vx*dt, e.r*0.5, WORLD - e.r*0.5);
+    e.y = clamp(e.y + e.vy*dt, e.r*0.5, WORLD - e.r*0.5);
+  }
+}
+
+function crack(e, b, nx, ny){
+  const lost = e.mass*0.2; e.mass -= lost; e.r = radius(e.mass);
+  const n = Math.max(6, Math.min(16, Math.round(lost/6)));
+  for (let i=0; i<n; i++) {
+    const a = Math.atan2(ny, nx) + rand(-1.7, 1.7), sp = rand(260, 540);
+    const p = mkPellet(e.x + Math.cos(a)*e.r*0.7, e.y + Math.sin(a)*e.r*0.7, lost/n);
+    p.vx = Math.cos(a)*sp; p.vy = Math.sin(a)*sp; p.noEat = e.id; p.noEatT = T + 0.9;
+    pellets.push(p);
+  }
+  e.cracked = 6; e.slow = 2; e.bushCd = 2.5;
+  burst(e.x, e.y, e.r, `hsl(${e.hue},80%,65%)`, 22);
+  addFloat(e.x, e.y - e.r - 10, 'CRACKED', '#d25cb6');
+  if (near(e)) sfx.crack();
+}
+function bushStep(dt){
+  for (const e of ents) {
+    e.hidden = false;
+    if (e.dead || e.duel) continue;
+    for (const b of bushes) {
+      if (b.dead || (b.grow ?? 1) < 1) continue;
+      const dx = e.x-b.x, dy = e.y-b.y, d = Math.hypot(dx, dy) || 0.01;
+      if (e.r < b.r*0.95) { if (d < b.r*0.8) e.hidden = true; continue; }
+      const lim = e.r + b.r*0.55;
+      if (d < lim) {
+        // a big blob that rams a bush pays for it (cracked + weakened) but smashes the bush
+        if (e.r > b.r*1.25 && e.bushCd <= 0) { crack(e, b, dx/d, dy/d); smashBush(b, e); continue; }
+        e.x = b.x + dx/d*lim; e.y = b.y + dy/d*lim;
+      }
+    }
+  }
+  if (bushes.some(b => b.dead)) bushes = bushes.filter(b => !b.dead);
+  for (const b of bushes) if ((b.grow ?? 1) < 1) b.grow = Math.min(1, b.grow + dt/3);
+  // smashed bushes grow back in the same spot after 40 seconds
+  for (let i = regrow.length - 1; i >= 0; i--) {
+    const g = regrow[i];
+    if (T >= g.t) { regrow.splice(i, 1); bushes.push({x: g.x, y: g.y, r: BUSH_R, seed: Math.random()*100, spikes: Array.from({length: 15}, () => rand(.86, 1.16)), grow: 0}); }
+  }
+}
+const BUSH_REGROW = 40;
+function smashBush(b, by){
+  b.dead = true;
+  regrow.push({t: T + BUSH_REGROW, x: b.x, y: b.y});
+  burst(b.x, b.y, b.r, '#d25cb6', 34);
+  addFloat(b.x, b.y - b.r - 14, 'BUSH SMASHED', '#d25cb6');
+  for (const e of ents) if (e.hidden && Math.hypot(e.x-b.x, e.y-b.y) < b.r*1.2) { e.hidden = false; addFloat(e.x, e.y - e.r - 8, 'EXPOSED', '#ffc94a'); }
+}
+function pelletStep(dt){
+  const f = Math.pow(0.03, dt);
+  for (const p of pellets) {
+    if (p.vx || p.vy) {
+      p.x = clamp(p.x + p.vx*dt, 10, WORLD-10); p.y = clamp(p.y + p.vy*dt, 10, WORLD-10);
+      p.vx *= f; p.vy *= f;
+      if (Math.abs(p.vx) < 3 && Math.abs(p.vy) < 3) p.vx = p.vy = 0;
+    }
+  }
+  for (const e of ents) {
+    if (e.dead || e.duel) continue;
+    const r = e.r, r2 = r*r;
+    for (let i = pellets.length-1; i >= 0; i--) {
+      const p = pellets[i], dx = p.x-e.x;
+      if (dx > r || dx < -r) continue;
+      const dy = p.y-e.y;
+      if (dy > r || dy < -r || dx*dx+dy*dy > r2) continue;
+      if (p.noEat === e.id && T < p.noEatT) continue;
+      e.mass += p.m; pellets.splice(i, 1);
+      if (e.isPlayer) sfx.pop();
+    }
+    e.r = radius(e.mass);
+  }
+  let n = 0; for (const p of pellets) if (p.m === 1) n++;
+  for (; n < PELLETS; n++) pellets.push(mkPellet());
+}
+
+function pairStep(){
+  for (let i=0; i<ents.length; i++) {
+    const a = ents[i];
+    if (a.dead || a.duel || a.hidden) continue;
+    for (let j=i+1; j<ents.length; j++) {
+      if (a.duel) break;
+      const b = ents[j];
+      if (b.dead || b.duel || b.hidden) continue;
+      const dx = b.x-a.x, dy = b.y-a.y, rs = a.r + b.r;
+      if (Math.abs(dx) > rs || Math.abs(dy) > rs) continue;
+      const d = Math.hypot(dx, dy) || 0.01;
+      if (d > rs - 3) continue;
+      const nx = dx/d, ny = dy/d;
+      if (a.immune <= 0 && b.immune <= 0) {
+        // the attacker is whoever was moving into the other one, whatever their size
+        const va = a.vx*nx + a.vy*ny, vb = -(b.vx*nx + b.vy*ny);
+        if (va >= vb) startDuel(a, b); else startDuel(b, a);
+        continue;
+      }
+      const ov = rs - d, wa = b.mass/(a.mass + b.mass), wb = 1 - wa;
+      a.x -= nx*ov*wa*0.5; a.y -= ny*ov*wa*0.5; b.x += nx*ov*wb*0.5; b.y += ny*ov*wb*0.5;
+    }
+  }
+}
+
+/* ================= duels ================= */
+function startDuel(att, def){
+  const cx = (att.x + def.x)/2, cy = (att.y + def.y)/2;
+  const R = Math.max(Math.hypot(att.x-cx, att.y-cy) + att.r, Math.hypot(def.x-cx, def.y-cy) + def.r) + 14;
+  const du = {att, def, round: null, pause: 0.45, finish: null, cx, cy, R, age: 0,
+    mine: att.isPlayer ? 'att' : def.isPlayer ? 'def' : null};
+  att.duel = def.duel = du; att.vx = att.vy = def.vx = def.vy = 0;
+  duels.push(du);
+  if (du.mine) { sfx.duel(); openDuelUI(du); }
+}
+function startRound(du){
+  const r = du.round = {t: 0, q: du.mine ? makeQuestion() : null, ans: {}, bot: {}, done: false, winner: null, why: ''};
+  for (const side of ['att','def']) {
+    const e = du[side]; if (e.isPlayer) continue;
+    r.bot[side] = {at: (1.2 + Math.random()*2.3)/e.bot.spd, ok: Math.random() < e.bot.acc, done: false};
+  }
+  if (du.mine) renderRound(du);
+}
+function duelStep(du, dt){
+  du.age += dt;
+  if (du.pause > 0) {
+    du.pause -= dt;
+    if (du.pause <= 0) { if (du.finish) endDuel(du); else startRound(du); }
+    return;
+  }
+  const r = du.round; r.t += dt;
+  for (const side of ['att','def']) {
+    const b = r.bot[side];
+    if (b && !b.done && r.t >= b.at) { b.done = true; register(du, side, b.ok); if (r.done) return; }
+  }
+  if (!r.done && r.t >= ROUND_TIME) roundOver(du, null, 'timeout');
+  if (du.mine && !r.done) $('dBar').style.transform = `scaleX(${clamp(1 - r.t/ROUND_TIME, 0, 1)})`;
+}
+function register(du, side, ok){
+  const r = du.round;
+  if (r.done || side in r.ans) return;
+  r.ans[side] = ok;
+  if (du.mine && side !== du.mine && !ok) setStatus(`${du[side].name} missed!`, 'good');
+  if (ok) { roundOver(du, side, 'first'); return; }
+  const other = side === 'att' ? 'def' : 'att';
+  if (other in r.ans) roundOver(du, null, 'bothwrong');
+}
+function roundOver(du, side, why){
+  const r = du.round; r.done = true; r.winner = side; r.why = why;
+  du.finish = side || 'none';
+  du.pause = du.mine ? 1.25 : 0.25;
+  if (du.mine) showRoundResult(du);
+}
+// what the winner can take: up to their own size (1.5x from a cracked blob), never more than the loser has
+function takeAmount(w, l){ return Math.min(w.mass*(l.cracked > 0 ? 1.5 : 1), l.mass); }
+function separate(a, b){
+  a.r = radius(a.mass); b.r = radius(b.mass);
+  const dx = b.x-a.x, dy = b.y-a.y, d = Math.hypot(dx, dy) || 1, need = a.r + b.r + 6;
+  if (d < need) {
+    const nx = dx/d, ny = dy/d, wa = b.mass/(a.mass + b.mass);
+    a.x -= nx*(need-d)*wa; a.y -= ny*(need-d)*wa; b.x += nx*(need-d)*(1-wa); b.y += ny*(need-d)*(1-wa);
+  }
+}
+function takeFrom(w, l){
+  const amt = takeAmount(w, l);
+  if (l.mass - amt < MIN_MASS) { w.mass += l.mass; eliminate(l, w); return {eaten: true, amount: Math.round(l.mass)}; }
+  l.mass -= amt; w.mass += amt;
+  w.immune = 1.0; l.immune = 1.0;
+  separate(w, l);
+  // knockback shrinks with size: small losers fly off, big losers barely budge
+  const dx = l.x - w.x, dy = l.y - w.y, d = Math.hypot(dx, dy) || 1;
+  const kb = clamp(260*Math.sqrt(20/l.mass), 12, 260);
+  l.vx = dx/d*kb*7; l.vy = dy/d*kb*7;
+  addFloat(w.x, w.y - w.r - 10, `+${Math.round(amt)}`, '#46e09a');
+  addFloat(l.x, l.y - l.r - 10, `-${Math.round(amt)}`, '#ff5f77');
+  return {eaten: false, amount: Math.round(amt)};
+}
+function endDuel(du){
+  duels.splice(duels.indexOf(du), 1);
+  const {att, def} = du; att.duel = def.duel = null;
+  burst(du.cx, du.cy, du.R, '#8fdcff', 30);
+  let info = null;
+  if (du.finish === 'none') {
+    att.immune = def.immune = 1.0; separate(att, def);
+    if (du.mine) info = {msg: 'Nobody got it. You bounce apart.', good: null};
+  } else {
+    const w = du[du.finish], l = du[du.finish === 'att' ? 'def' : 'att'];
+    const res = takeFrom(w, l);
+    if (w.isPlayer) { stats.duels++; info = {msg: res.eaten ? `You ate ${l.name}!` : `You took ${res.amount} from ${l.name}`, good: true}; }
+    else if (l.isPlayer && !res.eaten) info = {msg: `${w.name} took ${res.amount} from you`, good: false};
+  }
+  if (du.mine) {
+    closeDuelUI();
+    if (info) { showBanner(info.msg, info.good); if (info.good === true) sfx.win(); else if (info.good === false) sfx.lose(); }
+    if (pendingLesson) { const m = pendingLesson; pendingLesson = ''; setTimeout(() => showBanner(m, true), 1600); }
+  }
+}
+function eliminate(l, killer){
+  l.dead = true;
+  burst(l.x, l.y, l.r, `hsl(${l.hue},80%,65%)`, 40);
+  if (killer) addFloat(killer.x, killer.y - killer.r - 10, `ATE ${l.name.toUpperCase()}`, '#46e09a');
+  if (l.isPlayer) gameOver(killer);
+}
+function bubblePush(dt){
+  for (const du of duels) {
+    for (const e of ents) {
+      if (e.dead || e.duel) continue;
+      const dx = e.x-du.cx, dy = e.y-du.cy, d = Math.hypot(dx, dy) || 0.01, min = du.R + e.r*0.9;
+      if (d < min) { const push = Math.min(min - d, (140 + (min-d)*3)*dt); e.x += dx/d*push; e.y += dy/d*push; }
+    }
+  }
+}
+
+/* ================= fx ================= */
+function burst(x, y, r, c, n){
+  if (parts.length > 500) return;
+  for (let i=0; i<n; i++) {
+    const a = Math.random()*Math.PI*2, sp = rand(80, 320);
+    parts.push({x: x + Math.cos(a)*r*0.8, y: y + Math.sin(a)*r*0.8, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp, life: rand(.4,.9), max: .9, c, s: rand(3, 8)});
+  }
+}
+function addFloat(x, y, text, c){ floats.push({x, y, text, c, life: 1.4}); }
+function near(e){ return player && !player.dead && Math.hypot(e.x-player.x, e.y-player.y) < 900; }
+
+/* ================= camera ================= */
+const cam = {x: WORLD/2, y: WORLD/2, z: 0.7};
+function camStep(dt){
+  let f;
+  if (state === 'play' && player && !player.dead && player.duel) {
+    const du = player.duel, panel = $('duel').offsetHeight || 0;
+    f = {x: du.cx, y: du.cy + (panel*0.55)/cam.z, r: player.r};
+  } else if (state === 'play' && player && !player.dead) f = player;
+  else if (state === 'over') f = {x: lastPlayerPos.x, y: lastPlayerPos.y, r: 40};
+  else f = ents.find(e => e.boss && !e.dead) || ents[0] || {x: WORLD/2, y: WORLD/2, r: 60};
+  const screen = clamp(Math.min(W, H)/820, 0.6, 1.4);
+  const tz = Math.min(1.35, Math.pow(42/(f.r || 40), 0.45)) * screen * (state === 'menu' ? 0.85 : 1);
+  const k = Math.min(1, dt*5);
+  cam.x += (f.x - cam.x)*k; cam.y += (f.y - cam.y)*k; cam.z += (tz - cam.z)*Math.min(1, dt*2.5);
+}
+
+/* ================= main update ================= */
+let hudT = 0;
+function update(dt){
+  T += dt;
+  for (const e of ents) {
+    e.r = radius(e.mass);
+    if (e.immune > 0) e.immune -= dt;
+    if (e.burst > 0) e.burst -= dt;
+    if (e.cracked > 0) e.cracked -= dt;
+    if (e.slow > 0) e.slow -= dt;
+    if (e.bushCd > 0) e.bushCd -= dt;
+    if (e.revenge && T > e.revenge.until) e.revenge = null;
+  }
+  moveStep(dt);
+  bushStep(dt);
+  pelletStep(dt);
+  pairStep();
+  for (const du of duels.slice()) duelStep(du, dt);
+  bubblePush(dt);
+  for (const e of ents) if (!e.duel && e.mass > 150) e.mass -= (e.mass - 150)*0.0035*dt;
+  ents = ents.filter(e => !e.dead);
+  // respawn
+  if (ents.filter(e => e.bot && !e.boss).length < BOT_COUNT) { respawnT -= dt; if (respawnT <= 0) { ents.push(makeBot(randomBotMass(true))); respawnT = rand(1, 3); } }
+  if (!ents.some(e => e.boss)) { bossT += dt; if (bossT > 45) { ents.push(makeBoss()); bossT = 0; } }
+  // fx
+  for (const p of parts) { p.x += p.vx*dt; p.y += p.vy*dt; p.vx *= 0.94; p.vy *= 0.94; p.life -= dt; }
+  parts = parts.filter(p => p.life > 0);
+  for (const f of floats) { f.y -= 40*dt; f.life -= dt; }
+  floats = floats.filter(f => f.life > 0);
+  if (player && !player.dead) { lastPlayerPos.x = player.x; lastPlayerPos.y = player.y; if (stats) stats.peak = Math.max(stats.peak, player.mass); }
+  camStep(dt);
+  audioStep();
+  hudT -= dt; if (hudT <= 0) { hudT = 0.2; updateHUD(); }
+}
+
+/* ================= render ================= */
+function drawBlob(e){
+  const r = e.r;
+  if (e.streak >= 50) drawFlame(e);
+  const N = Math.max(22, Math.min(56, Math.round(r/2)));
+  ctx.beginPath();
+  for (let i=0; i<=N; i++) {
+    const a = i/N*Math.PI*2;
+    const w = reduceMotion ? 0 : Math.sin(T*2.6 + a*3 + e.wob)*0.022 + Math.sin(T*4.1 - a*5 + e.wob*1.7)*0.014;
+    const rr = r*(1 + w), x = e.x + Math.cos(a)*rr, y = e.y + Math.sin(a)*rr;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath();
+  const g = ctx.createRadialGradient(e.x - r*.35, e.y - r*.4, r*.1, e.x, e.y, r);
+  g.addColorStop(0, `hsl(${e.hue},85%,78%)`); g.addColorStop(.55, `hsl(${e.hue},75%,58%)`); g.addColorStop(1, `hsl(${e.hue},70%,40%)`);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = Math.max(2, r*.07); ctx.strokeStyle = `hsl(${e.hue},65%,28%)`; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.22)';
+  ctx.beginPath(); ctx.ellipse(e.x - r*.35, e.y - r*.42, r*.26, r*.15, -0.6, 0, Math.PI*2); ctx.fill();
+  if (e.streak >= 10) {
+    ctx.beginPath(); ctx.arc(e.x, e.y, r + Math.max(3, r*.06), 0, Math.PI*2);
+    ctx.lineWidth = Math.max(2.5, r*.05); ctx.strokeStyle = 'rgba(255,201,74,.9)'; ctx.stroke();
+  }
+  if (e.cracked > 0) {
+    ctx.save(); ctx.globalAlpha = clamp(e.cracked/2, 0, 1); ctx.strokeStyle = 'rgba(20,10,30,.75)'; ctx.lineWidth = Math.max(2, r*.04);
+    for (let k=0; k<3; k++) {
+      const a0 = e.wob + k*2.1; ctx.beginPath(); ctx.moveTo(e.x + Math.cos(a0)*r*.95, e.y + Math.sin(a0)*r*.95);
+      for (let s=1; s<=4; s++) { const f = 1 - s*.2, ja = a0 + (s%2 ? .25 : -.25); ctx.lineTo(e.x + Math.cos(ja)*r*f, e.y + Math.sin(ja)*r*f); }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  if (e.immune > 0 && !e.duel) {
+    ctx.save(); ctx.setLineDash([8, 8]); ctx.lineDashOffset = -T*40; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2/cam.z;
+    ctx.beginPath(); ctx.arc(e.x, e.y, r + 8, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+  }
+  const fs = Math.max(11, r*.36);
+  ctx.font = `800 ${fs}px "Baloo 2", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = fs*.2; ctx.strokeStyle = 'rgba(10,12,30,.75)'; ctx.lineJoin = 'round';
+  ctx.strokeText(e.name, e.x, e.y - fs*.15); ctx.fillStyle = '#fff'; ctx.fillText(e.name, e.x, e.y - fs*.15);
+  // exact size on every blob
+  const ms = Math.max(10, fs*.62); ctx.font = `800 ${ms}px "Inter", sans-serif`;
+  ctx.lineWidth = ms*.25; ctx.strokeText(Math.round(e.mass), e.x, e.y + fs*.62);
+  ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillText(Math.round(e.mass), e.x, e.y + fs*.62);
+  // streak name under the blob
+  if (e.streak >= 10) {
+    const ss = Math.max(10, 12/cam.z, r*.2);
+    ctx.font = `800 ${ss}px "Baloo 2", sans-serif`;
+    const col = e.streak >= 500 ? '#e9a6ff' : e.streak >= 100 ? '#7dffb0' : e.streak >= 50 ? '#9fd0ff' : '#ffc94a';
+    const flameExtra = e.streak >= 50 ? e.r*(e.streak >= 500 ? .75 : e.streak >= 100 ? .6 : .34) + 8 : 6;
+    const y = e.y + r + flameExtra + ss*.8;
+    const label = `${e.streak}-day streak`;
+    ctx.lineWidth = ss*.28; ctx.strokeStyle = 'rgba(10,12,30,.85)'; ctx.strokeText(label, e.x, y);
+    ctx.fillStyle = col; ctx.fillText(label, e.x, y);
+  }
+}
+// what a duel with this blob would win or cost you, shown above nearby blobs
+function drawStake(e){
+  const gain = Math.round(takeAmount(player, e)), loss = takeAmount(e, player);
+  const eats = gain >= Math.round(e.mass) - MIN_MASS, dies = player.mass - loss < MIN_MASS;
+  const g = eats ? `EAT +${Math.round(e.mass)}` : `+${gain}`;
+  const l = dies ? 'EATS YOU' : `-${Math.round(loss)}`;
+  const s = Math.max(12, 14/cam.z);
+  ctx.font = `800 ${s}px "Inter", sans-serif`;
+  const flameExtra = e.streak >= 50 ? e.r*(e.streak >= 500 ? .75 : e.streak >= 100 ? .6 : .34) + 8 : 4;
+  const y = e.y - e.r - flameExtra - s*.9;
+  const gw = ctx.measureText(g).width, lw = ctx.measureText(l).width, gap = s*.8, total = gw + gap + lw;
+  const x0 = e.x - total/2;
+  ctx.textAlign = 'left'; ctx.lineWidth = s*.28; ctx.strokeStyle = 'rgba(10,12,30,.9)';
+  ctx.strokeText(g, x0, y); ctx.fillStyle = '#46e09a'; ctx.fillText(g, x0, y);
+  ctx.strokeText(l, x0 + gw + gap, y); ctx.fillStyle = '#ff5f77'; ctx.fillText(l, x0 + gw + gap, y);
+  ctx.textAlign = 'center';
+}
+function drawFlame(e){
+  const tier = e.streak >= 500 ? 3 : e.streak >= 100 ? 2 : 1;
+  const cols = tier === 1 ? ['rgba(60,140,255,.5)','rgba(170,220,255,.75)'] : tier === 2 ? ['rgba(40,220,120,.5)','rgba(200,255,210,.8)'] : ['rgba(150,40,255,.55)','rgba(255,130,230,.8)'];
+  const len = e.r*(tier === 1 ? .34 : tier === 2 ? .6 : .75) + 8;
+  const N = 22, w = Math.PI/N*1.15;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createRadialGradient(e.x, e.y, e.r*.9, e.x, e.y, e.r + len*1.1);
+  g.addColorStop(0, cols[0]); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(e.x, e.y, e.r + len*1.1, 0, Math.PI*2); ctx.fill();
+  for (let layer=0; layer<2; layer++) {
+    ctx.fillStyle = cols[layer]; const L = len*(layer ? .55 : 1);
+    ctx.beginPath();
+    for (let i=0; i<N; i++) {
+      const a = i/N*Math.PI*2 + T*0.5;
+      const fl = reduceMotion ? .7 : Math.abs(Math.sin(T*9 + i*2.3 + e.wob)*Math.sin(T*5.3 + i*1.1));
+      const tip = e.r + L*(.35 + .65*fl), sway = reduceMotion ? 0 : Math.sin(T*6 + i)*.09, br = e.r*.96;
+      ctx.moveTo(e.x + Math.cos(a-w)*br, e.y + Math.sin(a-w)*br);
+      ctx.quadraticCurveTo(e.x + Math.cos(a-w*.3)*(e.r + L*.45), e.y + Math.sin(a-w*.3)*(e.r + L*.45), e.x + Math.cos(a+sway)*tip, e.y + Math.sin(a+sway)*tip);
+      ctx.quadraticCurveTo(e.x + Math.cos(a+w*.3)*(e.r + L*.45), e.y + Math.sin(a+w*.3)*(e.r + L*.45), e.x + Math.cos(a+w)*br, e.y + Math.sin(a+w)*br);
+      ctx.closePath();
+    }
+    ctx.fill();
+  }
+  ctx.restore();
+}
+function drawBush(b){
+  if ((b.grow ?? 1) < 1) {
+    // regrowing: a small sprout that swells to full size over 3 seconds
+    ctx.save(); ctx.translate(b.x, b.y); ctx.scale(.3 + .7*b.grow, .3 + .7*b.grow); ctx.translate(-b.x, -b.y); ctx.globalAlpha = .45 + .55*b.grow;
+    const g = b.grow; b.grow = 1; drawBush(b); b.grow = g; ctx.restore(); return;
+  }
+  const n = b.spikes.length, sway = reduceMotion ? 0 : Math.sin(T*0.8 + b.seed)*0.04;
+  ctx.beginPath();
+  for (let i=0; i<n*2; i++) {
+    const a = i/(n*2)*Math.PI*2 + sway;
+    const rr = i%2 === 0 ? b.r*1.14*b.spikes[i/2] : b.r*0.7;
+    const x = b.x + Math.cos(a)*rr, y = b.y + Math.sin(a)*rr;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.closePath();
+  const g = ctx.createRadialGradient(b.x, b.y, b.r*.1, b.x, b.y, b.r*1.1);
+  g.addColorStop(0, 'rgba(120,36,104,.88)'); g.addColorStop(1, 'rgba(70,18,62,.9)');
+  ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = '#d25cb6'; ctx.lineJoin = 'miter'; ctx.stroke();
+  ctx.beginPath();
+  for (let i=0; i<8; i++) { const a = i/8*Math.PI*2 + b.seed - sway*2; ctx.moveTo(b.x + Math.cos(a)*b.r*.2, b.y + Math.sin(a)*b.r*.2); ctx.lineTo(b.x + Math.cos(a)*b.r*.62, b.y + Math.sin(a)*b.r*.62); }
+  ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(240,140,220,.55)'; ctx.stroke();
+}
+function drawBubble(du){
+  const R = du.R*(1 + (reduceMotion ? 0 : Math.sin(T*6)*0.012));
+  const col = '143,220,255';
+  const g = ctx.createRadialGradient(du.cx, du.cy, R*.55, du.cx, du.cy, R);
+  g.addColorStop(0, `rgba(${col},0.03)`); g.addColorStop(1, `rgba(${col},0.24)`);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(du.cx, du.cy, R, 0, Math.PI*2); ctx.fill();
+  ctx.lineWidth = Math.max(3, R*.025); ctx.strokeStyle = `rgba(${col},.9)`; ctx.stroke();
+  ctx.lineWidth = Math.max(2, R*.015); ctx.strokeStyle = 'rgba(255,255,255,.4)';
+  ctx.beginPath(); ctx.arc(du.cx, du.cy, R*.9, T*1.5, T*1.5 + .9); ctx.stroke();
+}
+function render(){
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = '#070912'; ctx.fillRect(0, 0, W, H);
+  const z = cam.z;
+  const left = cam.x - W/2/z, top = cam.y - H/2/z, right = cam.x + W/2/z, bottom = cam.y + H/2/z;
+  ctx.setTransform(DPR*z, 0, 0, DPR*z, DPR*(W/2 - cam.x*z), DPR*(H/2 - cam.y*z));
+  ctx.fillStyle = '#0b0e1d'; ctx.fillRect(0, 0, WORLD, WORLD);
+  const S = 70; ctx.fillStyle = 'rgba(150,165,255,.12)';
+  for (let x = Math.max(S, Math.floor(left/S)*S); x <= Math.min(WORLD - S, right); x += S)
+    for (let y = Math.max(S, Math.floor(top/S)*S); y <= Math.min(WORLD - S, bottom); y += S) ctx.fillRect(x - 1.5, y - 1.5, 3, 3);
+  ctx.lineWidth = 6/z; ctx.strokeStyle = 'rgba(143,220,255,.35)'; ctx.strokeRect(0, 0, WORLD, WORLD);
+  const inView = (x, y, r) => x + r > left && x - r < right && y + r > top && y - r < bottom;
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '800 16px "Baloo 2", sans-serif';
+  for (const p of pellets) { if (p.m !== 1 || !inView(p.x, p.y, 12)) continue; ctx.fillStyle = p.c; ctx.fillText(p.ch, p.x, p.y); }
+  for (const p of pellets) {
+    if (p.m === 1 || !inView(p.x, p.y, 30)) continue;
+    const s = 16 + Math.sqrt(p.m)*4; ctx.font = `800 ${s}px "Baloo 2", sans-serif`; ctx.fillStyle = p.c; ctx.fillText(p.ch, p.x, p.y);
+  }
+  const vis = ents.filter(e => inView(e.x, e.y, e.r*2 + 30)).sort((a, b) => a.mass - b.mass);
+  ctx.save(); ctx.globalAlpha = .7; for (const e of vis) if (e.hidden && !e.isPlayer) drawBlob(e); ctx.restore();
+  for (const b of bushes) if (inView(b.x, b.y, b.r*1.3)) drawBush(b);
+  // where a smashed bush will grow back, with a countdown
+  for (const g of regrow) {
+    if (!inView(g.x, g.y, BUSH_R*1.3)) continue;
+    ctx.save(); ctx.setLineDash([10, 10]); ctx.strokeStyle = 'rgba(210,92,182,.35)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(g.x, g.y, BUSH_R*.8, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+    ctx.font = `800 ${Math.max(14, 13/cam.z)}px "Baloo 2", sans-serif`; ctx.fillStyle = 'rgba(210,92,182,.6)';
+    ctx.fillText(`${Math.ceil(g.t - T)}s`, g.x, g.y);
+  }
+  for (const e of vis) if (!e.hidden) drawBlob(e);
+  if (player && !player.dead && player.hidden) { ctx.save(); ctx.globalAlpha = .55; drawBlob(player); ctx.restore(); }
+  for (const du of duels) if (inView(du.cx, du.cy, du.R + 40)) drawBubble(du);
+  if (state === 'play' && player && !player.dead && !player.duel) {
+    for (const e of vis) {
+      if (e === player || e.duel || e.hidden) continue;
+      if (Math.hypot(e.x - player.x, e.y - player.y) - e.r - player.r < 420) drawStake(e);
+    }
+  }
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const p of parts) { ctx.globalAlpha = clamp(p.life/p.max, 0, 1); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill(); }
+  ctx.restore();
+  for (const f of floats) {
+    ctx.globalAlpha = clamp(f.life, 0, 1); ctx.font = `800 ${20/z}px "Baloo 2", sans-serif`;
+    ctx.lineWidth = 4/z; ctx.strokeStyle = 'rgba(10,12,30,.8)'; ctx.strokeText(f.text, f.x, f.y); ctx.fillStyle = f.c; ctx.fillText(f.text, f.x, f.y);
+  }
+  ctx.globalAlpha = 1;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (bossVol > 0.02) {
+    const g = ctx.createRadialGradient(W/2, H/2, Math.min(W, H)*.3, W/2, H/2, Math.max(W, H)*.75);
+    g.addColorStop(0, 'rgba(60,0,90,0)'); g.addColorStop(1, `rgba(60,0,90,${bossVol*.65})`);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+}
+
+/* ================= UI ================= */
+const optBtns = [...document.querySelectorAll('#dOpts button')];
+optBtns.forEach(b => b.addEventListener('click', () => answer(+b.dataset.i)));
+function openDuelUI(du){
+  const me = du.mine, opp = du[me === 'att' ? 'def' : 'att'];
+  const el = $('duel');
+  const gain = Math.round(takeAmount(player, opp)), loss = takeAmount(opp, player);
+  const title = me === 'att' ? `You attacked ${opp.name}` : `${opp.name} attacked you`;
+  const winTxt = gain >= Math.round(opp.mass) - MIN_MASS ? `Win: you eat them (+${Math.round(opp.mass)})` : `Win: +${gain}`;
+  const loseTxt = player.mass - loss < MIN_MASS ? 'Lose: you get eaten' : `Lose: -${Math.round(loss)}`;
+  $('dTitle').textContent = title;
+  $('dGoal').innerHTML = `Answer first. <b style="color:var(--good)">${winTxt}</b> · <b style="color:var(--bad)">${loseTxt}</b>`;
+  $('dLang').textContent = `${CODES[settings.learn]} → ${CODES[settings.speak]}`;
+  $('dPrompt').textContent = '…';
+  optBtns.forEach(b => { b.disabled = true; b.className = ''; b.querySelector('span').textContent = ''; });
+  $('dBar').style.transform = 'scaleX(1)';
+  renderPips(du); setStatus('Get ready…', '');
+  el.hidden = false;
+}
+function renderPips(){ $('dPips').innerHTML = ''; }
+function renderRound(du){
+  const q = du.round.q;
+  $('dPrompt').textContent = q.prompt;
+  optBtns.forEach((b, i) => { b.disabled = false; b.className = ''; b.querySelector('span').textContent = q.options[i]; });
+  const opp = du[du.mine === 'att' ? 'def' : 'att'];
+  setStatus(`${opp.name} is thinking…`, '');
+  renderPips(du);
+}
+function answer(i){
+  const du = player && player.duel;
+  if (!du || !du.round || du.round.done || du.pause > 0 || state !== 'play') return;
+  if (du.mine in du.round.ans) return;
+  const ok = i === du.round.q.correct;
+  optBtns[i].classList.add(ok ? 'right' : 'wrong');
+  optBtns.forEach(b => b.disabled = true);
+  if (ok) {
+    stats.words++; sfx.right();
+    const res = recordCorrect(du.round.q.ci);
+    if (res.unlocked) pendingLesson = `Lesson ${progress.lesson} complete! Lesson ${progress.lesson + 1} unlocked`;
+    updateLessonPill();
+  } else { sfx.wrong(); setStatus('Not quite. Waiting on your opponent…', 'bad'); }
+  register(du, du.mine, ok);
+}
+function showRoundResult(du){
+  const r = du.round, q = r.q, me = du.mine, opp = du[me === 'att' ? 'def' : 'att'];
+  optBtns.forEach(b => b.disabled = true);
+  optBtns[q.correct].classList.add('right');
+  renderPips(du);
+  let msg, cls;
+  if (r.why === 'first') { const good = r.winner === me; cls = good ? 'good' : 'bad'; msg = good ? 'You answered first!' : `${opp.name} answered first`; if (!good && !(me in r.ans)) sfx.wrong(); }
+  else { cls = ''; msg = r.why === 'timeout' ? "Time's up. Nobody takes anything." : 'Both missed. Nobody takes anything.'; }
+  setStatus(`${msg}  ·  ${q.prompt} = ${q.answer}`, cls);
+}
+function setStatus(t, cls){ const s = $('dStatus'); s.textContent = t; s.className = 'd-status ' + (cls || ''); }
+function closeDuelUI(){ $('duel').hidden = true; }
+let bannerTimer = 0, pendingLesson = '';
+function updateLessonPill(){
+  $('hudLesson').innerHTML = `<span class="k">Lesson ${progress.lesson + 1}</span>${learnedCount()}/${lessonIdx(progress.lesson).length}`;
+}
+function showBanner(msg, good){
+  const b = $('banner'); b.textContent = msg; b.className = 'hud ' + (good === true ? 'good' : good === false ? 'bad' : ''); b.hidden = false;
+  clearTimeout(bannerTimer); bannerTimer = setTimeout(() => { b.hidden = true; }, 3000);
+}
+function streakLabel(s){ return s >= 500 ? 'Purple flame + boss music' : s >= 100 ? 'Big green flame' : s >= 50 ? 'Blue flame' : s >= 10 ? 'Gold ring' : 'No look yet'; }
+function updateHUD(){
+  const playing = state === 'play' && player && !player.dead;
+  $('hudL').hidden = !playing; $('lb').hidden = state === 'menu';
+  if (playing) {
+    $('hudSize').textContent = Math.round(player.mass);
+    $('hudStreak').textContent = `${settings.streak}-day streak`;
+  }
+  $('bossTag').hidden = !(playing && bossVol > 0.25);
+  if (state !== 'menu') {
+    const sorted = ents.slice().sort((a, b) => b.mass - a.mass);
+    const rows = sorted.slice(0, 8).map((e, i) => `<div class="row${e === player ? ' me' : ''}"><span>${i+1}</span><span class="n">${esc(e.name)}</span><span>${Math.round(e.mass)}</span></div>`);
+    const idx = player ? sorted.indexOf(player) : -1;
+    if (idx >= 8) rows.push(`<div class="row me"><span>${idx+1}</span><span class="n">${esc(player.name)}</span><span>${Math.round(player.mass)}</span></div>`);
+    $('lb').innerHTML = `<div class="h">Biggest blobs</div>` + rows.join('');
+  }
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ----- start screen ----- */
+$('logo').innerHTML = [...'Language.io'].map((ch, i) => `<span style="color:hsl(${[42,200,330,150,42,270,200,15,0,48,48][i]},90%,66%)">${ch}</span>`).join('');
+for (const [k, v] of Object.entries(LANGS)) {
+  $('speakIn').insertAdjacentHTML('beforeend', `<option value="${k}">${v}</option>`);
+  $('learnIn').insertAdjacentHTML('beforeend', `<option value="${k}">${v}</option>`);
+}
+$('nameIn').value = settings.name; $('speakIn').value = settings.speak; $('learnIn').value = settings.learn; $('streakIn').value = String(settings.streak);
+function refreshStart(){
+  const learn = $('learnIn').value, speak = $('speakIn').value;
+  $('streakNote').textContent = 'Looks only, no power: ' + streakLabel(+$('streakIn').value) + '.';
+  const err = $('err');
+  if (learn !== speak) {
+    loadProgress(learn, speak);
+    $('todayLbl').textContent = `${LANGS[learn]} lesson ${progress.lesson + 1} of ${LESSONS} · ${learnedCount()}/${lessonIdx(progress.lesson).length} learned`;
+    $('chips').innerHTML = lessonIdx(progress.lesson).map(i => {
+      const c = CONCEPTS[i], done = (progress.hits[i] || 0) >= MASTERY;
+      return `<span class="chip${done ? ' done' : ''}"><b>${esc(wordOf(c, learn))}</b> ${esc(wordOf(c, speak))}</span>`;
+    }).join('');
+    $('courseNote').textContent = progress.lesson > 0 ? `Duels also review words from your ${progress.lesson} finished lesson${progress.lesson > 1 ? 's' : ''}.` : 'Answer each word right twice in duels to learn it. Learn all 10 to open the next lesson.';
+  }
+  if (learn === speak) { err.hidden = false; err.textContent = 'Pick two different languages.'; } else err.hidden = true;
+}
+['speakIn','learnIn','streakIn'].forEach(id => $(id).addEventListener('change', refreshStart));
+refreshStart();
+
+/* ----- more games corner (lobby only). In the app, window.LANGUAGEIO_PLATFORM is 'ios' or 'android',
+   so only that store's link shows; on the website both show. ----- */
+const SITE = 'https://westautomotivellc.github.io/1hbdlabs-games/';
+const OTHER_GAMES = [
+  {name: 'WordBust', icon: SITE + 'assets/wordbust-icon.png', apple: 'https://apps.apple.com/us/app/wordbust-spanish-arcade/id6800866615', google: 'https://play.google.com/store/apps/details?id=com.hbdlabs.wordbust'},
+  {name: 'The Last Translator', icon: SITE + 'assets/translator-icon.png', apple: 'https://apps.apple.com/us/app/the-last-translator/id6797645925', google: 'https://play.google.com/store/apps/details?id=com.lasttranslator.game'},
+  {name: 'Tomato Escape', icon: SITE + 'assets/tomato-icon.png', page: SITE + 'tomato-escape/', soon: true},
+];
+(function buildMoreGames(){
+  const plat = window.LANGUAGEIO_PLATFORM || 'web';
+  $('moreList').innerHTML = OTHER_GAMES.map(g => {
+    const links = [];
+    if (g.soon) links.push(`<span>Coming soon</span>`, `<a href="${g.page}" target="_blank" rel="noopener">See it</a>`);
+    else {
+      if (plat !== 'android') links.push(`<a href="${g.apple}" target="_blank" rel="noopener">App Store ↗</a>`);
+      if (plat !== 'ios') links.push(`<a href="${g.google}" target="_blank" rel="noopener">Google Play ↗</a>`);
+    }
+    return `<div class="mg"><img class="mg-icon" src="${g.icon}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'mg-icon',textContent:'${g.name[0]}'}))"><div><div class="mg-name">${esc(g.name)}</div><div class="mg-links">${links.join('')}</div></div></div>`;
+  }).join('');
+  $('moreBtn').addEventListener('click', () => {
+    const open = $('morePanel').hidden; $('morePanel').hidden = !open; $('moreBtn').setAttribute('aria-expanded', String(open));
+  });
+})();
+function syncLobbyCorner(){
+  const lobby = state !== 'play' && $('practice').hidden && $('adWait').hidden;
+  $('moreGames').hidden = !lobby;
+  if (!lobby) { $('morePanel').hidden = true; $('moreBtn').setAttribute('aria-expanded', 'false'); }
+}
+setInterval(syncLobbyCorner, 250);
+
+/* ----- practice flashcards ----- */
+const pr = {deck: [], pos: 0, flipped: false, done: 0, total: 0, learn: 'es', speak: 'en'};
+function buildDeck(){
+  pr.learn = $('learnIn').value; pr.speak = $('speakIn').value;
+  loadProgress(pr.learn, pr.speak);
+  let ids = $('pScope').value === 'all'
+    ? Array.from({length: Math.min(CONCEPTS.length, (progress.lesson + 1)*LESSON_SIZE)}, (_, i) => i)
+    : lessonIdx(progress.lesson);
+  const order = $('pOrder').value;
+  if (order === 'shuffle') shuffle(ids);
+  else if (order === 'reverse') ids.reverse();
+  else if (order === 'hard') ids.sort((a, b) => (progress.hits[a] || 0) - (progress.hits[b] || 0) || a - b);
+  pr.deck = ids; pr.pos = 0; pr.done = 0; pr.total = ids.length; pr.flipped = false;
+  showCard();
+}
+function showCard(){
+  const card = $('pCard'), front = $('pFrontTxt'), back = $('pBackTxt');
+  card.classList.toggle('flipped', pr.flipped);
+  if (pr.pos >= pr.deck.length) {
+    $('pLang').textContent = 'Deck finished';
+    front.textContent = `${pr.total} cards`;
+    back.hidden = true; $('pHint').textContent = 'Tap to go again';
+    $('pCount').textContent = '';
+    $('pAgain').disabled = $('pGot').disabled = true;
+    return;
+  }
+  $('pAgain').disabled = $('pGot').disabled = false;
+  const c = CONCEPTS[pr.deck[pr.pos]];
+  const firstLang = $('pFront').value === 'learn' ? pr.learn : pr.speak, otherLang = firstLang === pr.learn ? pr.speak : pr.learn;
+  $('pLang').textContent = pr.flipped ? `${LANGS[firstLang]} → ${LANGS[otherLang]}` : LANGS[firstLang];
+  front.textContent = wordOf(c, firstLang);
+  back.textContent = wordOf(c, otherLang);
+  back.hidden = !pr.flipped;
+  $('pHint').textContent = pr.flipped ? `Lesson ${Math.floor(pr.deck[pr.pos]/LESSON_SIZE) + 1}` : 'Tap to flip';
+  $('pCount').textContent = `${pr.done + 1} of ${pr.total}${pr.deck.length - pr.pos > pr.total - pr.done ? ' · repeats queued' : ''}`;
+}
+function flipCard(){ if (pr.pos >= pr.deck.length) { buildDeck(); return; } pr.flipped = !pr.flipped; showCard(); }
+function nextCard(again){
+  if (pr.pos >= pr.deck.length) return;
+  const id = pr.deck[pr.pos];
+  if (again) pr.deck.splice(Math.min(pr.deck.length, pr.pos + 4), 0, id);   // comes back a few cards later
+  else pr.done++;
+  pr.pos++; pr.flipped = false; showCard();
+}
+$('practiceBtn').addEventListener('click', () => {
+  if ($('learnIn').value === $('speakIn').value) { refreshStart(); return; }
+  $('start').hidden = true; $('practice').hidden = false; buildDeck(); $('pCard').focus();
+});
+$('pClose').addEventListener('click', () => { $('practice').hidden = true; $('start').hidden = false; refreshStart(); });
+$('pCard').addEventListener('click', flipCard);
+$('pAgain').addEventListener('click', () => nextCard(true));
+$('pGot').addEventListener('click', () => nextCard(false));
+['pScope','pOrder','pFront'].forEach(id => $(id).addEventListener('change', buildDeck));
+addEventListener('keydown', e => {
+  if ($('practice').hidden || e.target.tagName === 'SELECT') return;
+  if (e.key === ' ' && e.target.tagName === 'BUTTON') return;   // a focused button already handles Space
+  if (e.key === ' ') { e.preventDefault(); flipCard(); }
+  else if (e.key === 'ArrowLeft') nextCard(true);
+  else if (e.key === 'ArrowRight') nextCard(false);
+});
+
+function startGame(){
+  const learn = $('learnIn').value, speak = $('speakIn').value;
+  if (learn === speak) { refreshStart(); return; }
+  settings.name = ($('nameIn').value || 'You').trim().slice(0, 14) || 'You';
+  settings.speak = speak; settings.learn = learn; settings.streak = +$('streakIn').value;
+  saveSettings(); loadProgress(); lastQ = -1; updateLessonPill();
+  initAudio();
+  if (adPending) return;
+  adPending = true;
+  showPreGameAd().then(() => { adPending = false; beginRound(); });
+}
+let adPending = false;
+// In the phone app an AdMob interstitial plays before every game. The app wrapper shows it and calls
+// window.__languageioAdDone() when it closes (or fails). On the website there is no ad.
+function showPreGameAd(){
+  return new Promise(resolve => {
+    const bridge = window.ReactNativeWebView;
+    if (!bridge) { resolve(); return; }
+    let done = false;
+    const finish = () => { if (done) return; done = true; clearTimeout(timer); window.__languageioAdDone = null; $('adWait').hidden = true; if (AC && AC.state === 'suspended') AC.resume(); resolve(); };
+    const timer = setTimeout(finish, 60000);
+    window.__languageioAdDone = finish;
+    $('adWait').hidden = false;
+    try { bridge.postMessage(JSON.stringify({type: 'showAd', placement: 'pregame'})); } catch (e) { finish(); }
+  });
+}
+function beginRound(){
+  buildWorld(); spawnPlayer();
+  mouse.active = false;
+  state = 'play';
+  $('start').hidden = true; $('over').hidden = true; $('duel').hidden = true;
+  showBanner('Eat letters to grow. Bump smaller blobs to duel.', true);
+}
+$('playBtn').addEventListener('click', startGame);
+$('againBtn').addEventListener('click', startGame);
+$('menuBtn').addEventListener('click', () => { $('over').hidden = true; $('start').hidden = false; state = 'menu'; });
+$('nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); });
+
+function gameOver(killer){
+  state = 'over';
+  closeDuelUI(); sfx.lose();
+  const secs = Math.round(T - stats.start);
+  $('overTitle').textContent = killer ? `Eaten by ${killer.name}` : 'Eaten';
+  $('overSub').textContent = killer && killer.boss ? 'La Sombra got you. Listen for the music next time.' : 'Every duel is a word. Every word makes you faster.';
+  $('sPeak').textContent = Math.round(stats.peak); $('sWords').textContent = stats.words; $('sDuels').textContent = stats.duels;
+  $('sTime').textContent = secs >= 60 ? `${Math.floor(secs/60)}m ${secs%60}s` : `${secs}s`;
+  setTimeout(() => { if (state === 'over') $('over').hidden = false; }, 900);
+}
+
+function setMuteLabel(){ $('muteBtn').textContent = settings.muted ? 'Sound off' : 'Sound on'; }
+$('muteBtn').addEventListener('click', () => {
+  settings.muted = !settings.muted; saveSettings(); setMuteLabel();
+  initAudio(); if (master) master.gain.setTargetAtTime(settings.muted ? 0 : 0.9, AC.currentTime, 0.05);
+});
+setMuteLabel();
+
+/* ================= boot ================= */
+buildWorld();
+let last = performance.now();
+function frame(t){ const dt = Math.min(0.05, (t - last)/1000); last = t; update(dt); render(); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
