@@ -123,6 +123,11 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .hud{position:fixed;z-index:10}
 #hudL{top:calc(12px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px));max-width:calc(100% - 84px);display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
 .pill.fire{border-color:#ff9f4a;color:#ffd9a8}
+.pill.ring{border-color:#ff5f77;color:#ffc2cc}
+#dashBtn{right:max(18px,env(safe-area-inset-right,0px));bottom:calc(22px + env(safe-area-inset-bottom,0px));width:72px;height:72px;border-radius:50%;border:2px solid var(--gold);background:conic-gradient(rgba(255,201,74,.85) var(--cd,360deg), rgba(16,20,42,.9) 0);display:grid;place-items:center;font-size:30px;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+#dashBtn span{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:var(--panel)}
+#dashBtn.cool{opacity:.7}
+.place{font:800 18px var(--display);color:var(--gold);letter-spacing:.04em}
 .pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font:700 15px var(--display);white-space:nowrap}
 .pill .k{color:var(--muted);font-weight:600;margin-right:4px}
 #lb{top:calc(56px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));background:var(--panel);
@@ -173,7 +178,8 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .d-status.good{color:var(--good)} .d-status.bad{color:var(--bad)}
 
 @media (max-width:560px){
-  #lb{min-width:0;font-size:11px;padding:6px 8px;top:calc(60px + env(safe-area-inset-top,0px));opacity:.85}
+  #lb{min-width:0;font-size:11px;padding:6px 8px;top:calc(100px + env(safe-area-inset-top,0px));opacity:.85}
+  #banner{top:calc(100px + env(safe-area-inset-top,0px));font-size:14px}
   #lb .row:nth-child(n+5){display:none}
   .pill{font-size:13px;padding:3px 10px}
   #lb .row:nth-child(n+6){display:none}
@@ -188,7 +194,10 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
   <div class="pill"><span class="k" data-i18n="size">Size</span><span id="hudSize">20</span></div>
   <div class="pill fire" id="hudStreak"></div>
   <div class="pill" id="hudLesson"></div>
+  <div class="pill" id="hudAlive"></div>
+  <div class="pill ring" id="hudRing"></div>
 </div>
+<button class="hud" id="dashBtn" type="button" hidden aria-label="Dash"><span>⚡</span></button>
 <div class="hud" id="lb" hidden></div>
 <button class="hud" id="muteBtn" type="button" aria-label="Sound on">🔊</button>
 <div class="hud" id="banner" hidden></div>
@@ -220,7 +229,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
       <div class="field"><label for="speakIn" data-i18n="speak">I speak</label><select id="speakIn"></select></div>
       <div class="field"><label for="learnIn" data-i18n="learning">I'm learning</label><select id="learnIn"></select></div>
     </div>
-    <div class="field">
+    <div class="field" hidden><!-- streak look preview, test builds only -->
       <label for="streakIn"><span data-i18n="streak">Daily streak</span> <span class="hint" data-i18n="streakTest">(test setting)</span></label>
       <select id="streakIn">
         <option value="-1" data-i18n="realStreak">My streak</option><option value="0" data-i18n="days" data-n="0">0 days</option><option value="10" data-i18n="days" data-n="10">10 days</option><option value="50" data-i18n="days" data-n="50">50 days</option>
@@ -240,6 +249,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
       <li data-i18n="how1">Steer with your mouse or finger. Eat floating letters to grow.</li>
       <li style="--dot:var(--bubble)" data-i18n="how2">Bump any blob to start a one-word duel. Whoever answers first wins.</li>
       <li style="--dot:var(--ember)" data-i18n="how3">The winner takes up to their own size from the loser. Run out of size and you're eaten, so big blobs are deadly. Big losers barely get knocked back, so small blobs can hit them again.</li>
+      <li style="--dot:#ff5f77" data-i18n="how6">Each round is an arena.</li>
       <li style="--dot:var(--good)" data-i18n="how4">Blobs near you show what a duel is worth: green is what you'd win, red is what you'd lose.</li>
       <li style="--dot:var(--thorn)" data-i18n="how5">Small blobs can hide in thornbushes. A big blob can smash a bush to expose who's hiding, but it cracks open: it loses 20% of its size, slows down, and loses more in duels for a few seconds. Bushes grow back after 40 seconds.</li>
     </ul>
@@ -304,6 +314,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 
 <div class="screen" id="over" hidden>
   <div class="card">
+    <div class="place" id="overPlace"></div>
     <h2 class="logo" style="font-size:40px" id="overTitle">Eaten</h2>
     <p class="tag" id="overSub"></p>
     <div class="stats">
@@ -1277,7 +1288,8 @@ const I18N = {
     unlocked: "Lesson {a} complete! Lesson {b} unlocked", notQuite: "Not quite. Waiting on your opponent…",
     youFirst: "You answered first!", oppFirst: "{name} answered first",
     timeUp: "Time's up. Nobody takes anything.", bothMissed: "Both missed. Nobody takes anything.",
-    startBanner: "Eat letters to grow. Bump smaller blobs to duel.",
+    startBanner: "Last blob standing wins. Stay inside the ring!",
+    ringClosing: "Ring closing!", ringWarn: "Get back inside the ring!", champion: "Champion!", champSub: "Last blob standing. Wins so far: {n}.", placeOf: "#{p} of {n}", outRing: "The ring got you.", dash: "Dash", how6: "Each round is an arena: the glowing ring shrinks, and anyone outside it shrinks too. Be the last blob standing. Tap ⚡ (or press Space) to dash forward.",
     eatYou: "EATS YOU", eatThem: "EAT +{n}", mins: "{m}m {s}s", secs: "{s}s",
     langs: {en: "English", es: "Spanish", fil: "Filipino", fr: "French", ko: "Korean"}
   },
@@ -1319,7 +1331,8 @@ const I18N = {
     unlocked: "¡Lección {a} completada! Lección {b} desbloqueada", notQuite: "Casi. Esperando a tu rival…",
     youFirst: "¡Respondiste primero!", oppFirst: "{name} respondió primero",
     timeUp: "Se acabó el tiempo. Nadie se lleva nada.", bothMissed: "Los dos fallaron. Nadie se lleva nada.",
-    startBanner: "Come letras para crecer. Choca con blobs más pequeños para hacer duelos.",
+    startBanner: "Gana el último blob en pie. ¡Quédate dentro del anillo!",
+    ringClosing: "¡El anillo se cierra!", ringWarn: "¡Vuelve dentro del anillo!", champion: "¡Campeón!", champSub: "El último blob en pie. Victorias: {n}.", placeOf: "#{p} de {n}", outRing: "Te atrapó el anillo.", dash: "Impulso", how6: "Cada ronda es una arena: el anillo brillante se encoge y quien quede fuera también se encoge. Sé el último blob en pie. Toca ⚡ (o pulsa Espacio) para lanzarte hacia delante.",
     eatYou: "TE COME", eatThem: "COMER +{n}", mins: "{m} min {s} s", secs: "{s} s",
     langs: {en: "Inglés", es: "Español", fil: "Filipino", fr: "Francés", ko: "Coreano"}
   },
@@ -1361,7 +1374,8 @@ const I18N = {
     unlocked: "Leçon {a} terminée ! Leçon {b} débloquée", notQuite: "Pas tout à fait. On attend ton adversaire…",
     youFirst: "Tu as répondu en premier !", oppFirst: "{name} a répondu en premier",
     timeUp: "Temps écoulé. Personne ne prend rien.", bothMissed: "Vous vous êtes trompés tous les deux. Personne ne prend rien.",
-    startBanner: "Mange des lettres pour grandir. Touche des blobs plus petits pour les défier.",
+    startBanner: "Le dernier blob debout gagne. Reste dans l'anneau !",
+    ringClosing: "L'anneau se resserre !", ringWarn: "Reviens dans l'anneau !", champion: "Champion !", champSub: "Dernier blob debout. Victoires : {n}.", placeOf: "#{p} sur {n}", outRing: "L'anneau t'a eu.", dash: "Élan", how6: "Chaque manche est une arène : l'anneau lumineux rétrécit, et ceux qui sont dehors rétrécissent aussi. Sois le dernier blob debout. Touche ⚡ (ou Espace) pour foncer.",
     eatYou: "TE MANGE", eatThem: "MANGER +{n}", mins: "{m} min {s} s", secs: "{s} s",
     langs: {en: "Anglais", es: "Espagnol", fil: "Filipino", fr: "Français", ko: "Coréen"}
   },
@@ -1403,7 +1417,8 @@ const I18N = {
     unlocked: "레슨 {a} 완료! 레슨 {b} 열림", notQuite: "아쉬워요. 상대를 기다리는 중…",
     youFirst: "먼저 맞혔어요!", oppFirst: "{name}이(가) 먼저 맞혔어요",
     timeUp: "시간 끝. 아무도 가져가지 않아요.", bothMissed: "둘 다 틀렸어요. 아무도 가져가지 않아요.",
-    startBanner: "글자를 먹고 커지세요. 작은 블롭과 부딪혀 대결하세요.",
+    startBanner: "마지막까지 살아남는 블롭이 승리! 링 안에 머무세요!",
+    ringClosing: "링이 좁혀져요!", ringWarn: "링 안으로 돌아가세요!", champion: "챔피언!", champSub: "마지막까지 살아남았어요. 지금까지 {n}승.", placeOf: "{n}명 중 {p}위", outRing: "링에 잡혔어요.", dash: "돌진", how6: "매 라운드는 아레나예요. 빛나는 링이 줄어들고, 링 밖에 있으면 크기가 줄어요. 마지막까지 살아남으세요. ⚡를 탭하거나 스페이스를 누르면 앞으로 돌진해요.",
     eatYou: "먹혀요", eatThem: "먹기 +{n}", mins: "{m}분 {s}초", secs: "{s}초",
     langs: {en: "영어", es: "스페인어", fil: "필리핀어", fr: "프랑스어", ko: "한국어"}
   },
@@ -1445,7 +1460,8 @@ const I18N = {
     unlocked: "Tapos na ang Lesson {a}! Bukas na ang Lesson {b}", notQuite: "Hindi pa tama. Hinihintay ang kalaban mo…",
     youFirst: "Ikaw ang naunang sumagot!", oppFirst: "Naunang sumagot si {name}",
     timeUp: "Ubos na ang oras. Walang kukunin.", bothMissed: "Parehong mali. Walang kukunin.",
-    startBanner: "Kumain ng letra para lumaki. Banggain ang mas maliliit na blob para mag-duel.",
+    startBanner: "Panalo ang huling blob na nakatayo. Manatili sa loob ng ring!",
+    ringClosing: "Sumisikip ang ring!", ringWarn: "Bumalik sa loob ng ring!", champion: "Kampeon!", champSub: "Huling blob na nakatayo. Panalo sa ngayon: {n}.", placeOf: "#{p} sa {n}", outRing: "Nahuli ka ng ring.", dash: "Dash", how6: "Bawat round ay arena: lumiliit ang kumikinang na ring, at lumiliit din ang sinumang nasa labas nito. Maging huling blob na nakatayo. I-tap ang ⚡ (o pindutin ang Space) para sumugod.",
     eatYou: "KAKAININ KA", eatThem: "KAININ +{n}", mins: "{m}m {s}s", secs: "{s}s",
     langs: {en: "Ingles", es: "Espanyol", fil: "Filipino", fr: "Pranses", ko: "Koreano"}
   }
@@ -1506,6 +1522,7 @@ let savedSettings = null;
 try { savedSettings = JSON.parse(localStorage.getItem('languageio-settings') || 'null'); } catch (e) {}
 if (savedSettings) Object.assign(settings, savedSettings);
 else { settings.speak = detectLang(); settings.learn = settings.speak === 'en' ? 'es' : 'en'; }
+settings.streak = -1;   // the real daily streak decides your look (the test preview menu is hidden)
 if (!LANGS[settings.speak]) settings.speak = 'en';
 if (!LANGS[settings.learn]) settings.learn = 'es';
 function saveSettings(){ try { localStorage.setItem('languageio-settings', JSON.stringify(settings)); } catch (e) {} }
@@ -1584,7 +1601,7 @@ function initAudio(){
     AC = new (window.AudioContext || window.webkitAudioContext)();
     master = AC.createGain(); master.gain.value = settings.muted ? 0 : 0.9; master.connect(AC.destination);
     bossGain = AC.createGain(); bossGain.gain.value = 0; bossGain.connect(master);
-    loadMusic();
+    if (!window.LANGUAGEIO_NATIVE_MUSIC) loadMusic();   // in the phone app the music plays natively
   } catch (e) { AC = null; }
 }
 async function loadMusic(){
@@ -1620,7 +1637,7 @@ const sfx = {
   crack(){ tone(160,.28,'square',.09,.45); },
   pop(){ if (!AC) return; if (AC.currentTime - lastPop < 0.06) return; lastPop = AC.currentTime; tone(rand(720,900),.05,'sine',.04,1.4); },
 };
-let bossVol = 0, threatIsBoss = false;
+let bossVol = 0, threatIsBoss = false, lastMusicSent = -1, lastMusicAt = 0;
 function audioStep(){
   let vol = 0; threatIsBoss = false;
   if (state === 'play' && player && !player.dead) {
@@ -1632,22 +1649,68 @@ function audioStep(){
     for (const e of ents) {
       if (e === player || e.dead || e.mass <= player.mass * 1.15) continue;
       const d = Math.max(0, Math.hypot(e.x-player.x, e.y-player.y) - e.r - player.r);
-      const v = Math.pow(clamp(1 - d/900, 0, 1), 1.6);   // starts quietly about 900 away, loud when close
+      // Only once the bigger blob is close (about half a screen away): a whisper at first, loud right next to you.
+      const range = Math.min(520, 0.42 * Math.min(W, H) / cam.z + player.r);
+      if (d >= range) continue;
+      const near = 1 - d / range;
+      const v = 0.04 + 0.96 * Math.pow(near, 2.4);
       if (v > vol) { vol = v; threatIsBoss = !!e.boss; }
     }
   }
   bossVol += (vol - bossVol) * 0.05;
+  // Phone app: hand the volume to the app's own player (it plays even with the silent switch on).
+  if (window.LANGUAGEIO_NATIVE_MUSIC && window.ReactNativeWebView) {
+    const level = settings.muted ? 0 : Math.round(bossVol * 50) / 50;
+    const now = performance.now();
+    if (level !== lastMusicSent && (now - lastMusicAt > 150 || level === 0)) {
+      lastMusicSent = level; lastMusicAt = now;
+      try { window.ReactNativeWebView.postMessage(JSON.stringify({type: 'music', level})); } catch (e) {}
+    }
+  }
   if (!AC) return;
   bossGain.gain.setTargetAtTime(settings.muted ? 0 : vol*0.75, AC.currentTime, 0.6);
 }
 
 /* ================= world ================= */
-const WORLD = 4200, MIN_MASS = 12, BOT_COUNT = 26, PELLETS = 650, BUSH_R = 52, ROUND_TIME = 5;
+const WORLD = 4200, MIN_MASS = 12, BOT_COUNT = 26, PELLETS = 900, BUSH_R = 52, ROUND_TIME = 5;
 const radius = m => Math.sqrt(m) * 4.2;
-const NAMES = ['Luna','Mateo','Sofi','Bao','Kai','Nube','Pip','Rosa','Tito','Mika','Gus','Lola','Dani','Yuki','Omar','Inés','Remy','Paz','Teo','Coco','Nico','Vale','Sam','Juno','Ziggy','Bea','Fer','Min','Hana','Leo','Ari','Tomi'];
+const NAMES = ['Luna','Mateo','Sofi','Bao','Kai','Nube','Pip','Rosa','Tito','Mika','Gus','Lola','Dani','Yuki','Omar','Inés','Remy','Paz','Teo','Coco','Nico','Vale','Sam','Juno','Ziggy','Bea','Fer','Min','Hana','Leo','Ari','Tomi',
+  'Joon','Amara','Lucas','Chloé','Diego','Mei','Rafa','Zoe','Tala','Ikaika','Noor','Elio','Sora','Ana','Jae','Mila','Bruno','Lila','Oti','Pau','Rin','Kiko','Malia','Dex','Iris','Tavo','Nia','Ezra'];
 let ents = [], pellets = [], bushes = [], duels = [], parts = [], floats = [], regrow = [];
 let player = null, state = 'menu', T = 0, nextId = 1, respawnT = 0, bossT = 0;
 let stats = null, lastPlayerPos = {x: WORLD/2, y: WORLD/2};
+/* ----- arena: each round, a glowing ring shrinks in stages. Anyone outside it shrinks too.
+   No new bots join mid-round; the last blob standing wins. ----- */
+const ARENA_BOTS = 45;
+const RING_STAGES = [2980, 2250, 1650, 1150, 760, 440, 200];
+const RING_WAIT = 14, RING_SHRINK = 12;
+let arena = false;
+const ring = {cx: WORLD/2, cy: WORLD/2, r: RING_STAGES[0], from: RING_STAGES[0], to: RING_STAGES[0], stage: 0, phase: 'wait', t: RING_WAIT};
+function resetRing(){ Object.assign(ring, {r: RING_STAGES[0], from: RING_STAGES[0], to: RING_STAGES[1], stage: 0, phase: 'wait', t: RING_WAIT}); }
+function ringStep(dt){
+  ring.t -= dt;
+  if (ring.phase === 'wait' && ring.t <= 0 && ring.stage < RING_STAGES.length - 1) {
+    ring.phase = 'shrink'; ring.t = RING_SHRINK; ring.from = ring.r; ring.to = RING_STAGES[ring.stage + 1];
+    if (state === 'play') showBanner(t('ringClosing'), null);
+  } else if (ring.phase === 'shrink') {
+    const k = 1 - Math.max(0, ring.t) / RING_SHRINK;
+    ring.r = ring.from + (ring.to - ring.from) * (k*k*(3 - 2*k));
+    if (ring.t <= 0) { ring.stage++; ring.r = ring.to; ring.phase = 'wait'; ring.t = RING_WAIT; ring.to = RING_STAGES[Math.min(ring.stage + 1, RING_STAGES.length - 1)]; }
+  }
+  // outside the ring you shrink; run out and you're out
+  for (const e of ents) {
+    if (e.dead || e.duel) continue;
+    const out = Math.hypot(e.x - ring.cx, e.y - ring.cy) - ring.r;
+    e.outside = out > 0;
+    if (!e.outside) continue;
+    e.mass -= Math.max(2, e.mass * 0.07) * dt;
+    if (e.isPlayer && (!e.warnT || T > e.warnT)) { e.warnT = T + 4; showBanner(t('ringWarn'), false); }
+    if (e.mass < MIN_MASS) { e.ringOut = true; eliminate(e, null); }
+  }
+}
+const randInRing = (pad = 40) => { const a = Math.random()*Math.PI*2, d = Math.sqrt(Math.random()) * Math.max(60, ring.r - pad);
+  return {x: clamp(ring.cx + Math.cos(a)*d, 30, WORLD-30), y: clamp(ring.cy + Math.sin(a)*d, 30, WORLD-30)}; };
+const aliveCount = () => ents.filter(e => !e.dead).length;
 
 function pickName(){
   const taken = new Set(ents.map(e => e.name));
@@ -1684,10 +1747,12 @@ function makeBoss(){
 function mkPellet(x, y, m=1){
   const L = LETTERS[settings.learn] || LETTERS.es;
   const h = Math.floor(rand(0,360));
-  return {x: x ?? rand(30, WORLD-30), y: y ?? rand(30, WORLD-30), vx: 0, vy: 0, m,
+  const at = (x == null && arena) ? randInRing() : null;
+  return {x: x ?? (at ? at.x : rand(30, WORLD-30)), y: y ?? (at ? at.y : rand(30, WORLD-30)), vx: 0, vy: 0, m,
     ch: L[Math.floor(Math.random()*L.length)], c: `hsl(${h},90%,70%)`, noEat: 0, noEatT: 0};
 }
-function buildWorld(){
+function buildWorld(isArena = false){
+  arena = isArena; resetRing();
   ents = []; pellets = []; bushes = []; duels = []; parts = []; floats = []; regrow = []; player = null; respawnT = 0; bossT = 0;
   for (let i=0; i<24; i++) {
     let x, y, ok, tries = 0;
@@ -1695,17 +1760,24 @@ function buildWorld(){
     bushes.push({x, y, r: BUSH_R, seed: Math.random()*100, spikes: Array.from({length: 15}, () => rand(.86, 1.16))});
   }
   for (let i=0; i<PELLETS; i++) pellets.push(mkPellet());
-  for (let i=0; i<BOT_COUNT; i++) ents.push(makeBot(randomBotMass(false)));
-  ents.push(makeBoss());
+  if (arena) {
+    // a fair start: mostly small blobs, a few medium ones, and La Sombra as the round's boss
+    for (let i=0; i<ARENA_BOTS - 1; i++) ents.push(makeBot(i < 30 ? rand(16, 40) : rand(55, 110)));
+    const boss = makeBoss(); boss.mass = rand(220, 300); ents.push(boss);
+    for (const e of ents) { const p = randInRing(300); e.x = p.x; e.y = p.y; e.immune = 2; }
+  } else {
+    for (let i=0; i<BOT_COUNT; i++) ents.push(makeBot(randomBotMass(false)));
+    ents.push(makeBoss());
+  }
 }
 function spawnPlayer(){
-  player = mkEnt({isPlayer: true, mass: 20, name: settings.name || 'You', hue: 42, streak: effStreak(), immune: 3});
+  player = mkEnt({isPlayer: true, mass: 24, name: settings.name || 'You', hue: 42, streak: effStreak(), immune: 3, crown: lastRoundWon});
   for (let k=0; k<60; k++) {
     const x = rand(300, WORLD-300), y = rand(300, WORLD-300);
     if (ents.every(e => e.mass < 60 || Math.hypot(e.x-x, e.y-y) > 650)) { player.x = x; player.y = y; break; }
   }
   ents.push(player);
-  stats = {words: 0, duels: 0, peak: 20, start: T};
+  stats = {words: 0, duels: 0, peak: 24, start: T, field: aliveCount()};
 }
 
 /* ================= input ================= */
@@ -1731,18 +1803,53 @@ cv.addEventListener('pointermove', e => {
 const joyEnd = e => { if (e.pointerType !== 'mouse' && e.pointerId === joy.id) joy.on = false; };
 cv.addEventListener('pointerup', joyEnd);
 cv.addEventListener('pointercancel', joyEnd);
-addEventListener('keydown', e => { if (e.key >= '1' && e.key <= '4') answer(+e.key - 1); });
+addEventListener('keydown', e => {
+  if (e.key >= '1' && e.key <= '4') answer(+e.key - 1);
+  if (e.key === ' ' && state === 'play' && player && !player.duel && e.target === document.body) { e.preventDefault(); playerDash(); }
+});
 
 let W = 0, H = 0, DPR = 1;
 function resize(){ DPR = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W*DPR; cv.height = H*DPR; cv.style.width = W+'px'; cv.style.height = H+'px'; }
 addEventListener('resize', resize); resize();
 
 /* ================= simulation ================= */
-function speedOf(e){ return 400*Math.pow(e.mass, -0.27) * (e.slow>0 ? 0.45 : 1) * (e.burst>0 ? 1.9 : 1); }
+function speedOf(e){ return 400*Math.pow(e.mass, -0.27) * (e.slow>0 ? 0.45 : 1) * (e.burst>0 ? 1.9 : 1) * (e.dash>0 ? 2.9 : 1); }
+/* ----- dash: a short burst forward. Costs a little size, then needs a few seconds to recharge. ----- */
+const DASH_TIME = 0.32, DASH_COOLDOWN = 2.6;
+function tryDash(e, dx, dy){
+  if (!e || e.dead || e.duel || (e.dashCd || 0) > 0 || e.mass < MIN_MASS + 6) return false;
+  const n = Math.hypot(dx, dy); if (n < 0.01) return false;
+  e.dashDx = dx/n; e.dashDy = dy/n; e.dash = DASH_TIME; e.dashCd = DASH_COOLDOWN;
+  e.mass -= Math.max(1, e.mass * 0.04);
+  burst(e.x - e.dashDx*e.r, e.y - e.dashDy*e.r, e.r*0.3, `hsl(${e.hue},90%,70%)`, 10);
+  if (e.isPlayer) tone(520, .12, 'triangle', .08, 1.8);
+  return true;
+}
+function playerDash(){
+  if (state !== 'play' || !player) return;
+  let dx = 0, dy = 0;
+  if (joy.used) { dx = joy.dx; dy = joy.dy; }
+  else { dx = mouse.x - W/2; dy = mouse.y - H/2; }
+  if (Math.hypot(dx, dy) < 0.01) { dx = player.vx; dy = player.vy; }
+  tryDash(player, dx, dy);
+}
 
 function botThink(e, dt){
   const b = e.bot; b.think -= dt; if (b.think > 0) return; b.think = rand(.18, .35);
   const view = (b.brave ? 620 : 420) + e.r*2.2;
+  // Survive the ring first: head inward before it closes, and dash back in if caught outside.
+  let safeR = WORLD;
+  if (arena) {
+    safeR = (ring.phase === 'shrink' || ring.t < 7) ? Math.min(ring.r, ring.to) : ring.r;
+    const ox = e.x - ring.cx, oy = e.y - ring.cy, od = Math.hypot(ox, oy) || 1;
+    if (od > safeR - e.r - 180) {
+      const goal = Math.max(0, safeR * 0.45);
+      b.tx = ring.cx + ox/od*goal; b.ty = ring.cy + oy/od*goal;
+      if (e.outside || od > ring.r - e.r) tryDash(e, -ox, -oy);
+      return;
+    }
+  }
+  const inSafe = (x, y, pad = 0) => !arena || Math.hypot(x - ring.cx, y - ring.cy) < safeR - pad;
   let threat = null, td = 1e9, prey = null, ps = 0;
   for (const o of ents) {
     if (o === e || o.dead) continue;
@@ -1751,9 +1858,9 @@ function botThink(e, dt){
     const d = Math.hypot(dx, dy) - o.r - e.r;
     const free = !o.duel && !o.hidden && o.immune <= 0;
     // bold, accurate bots will poke a bigger blob to steal their own size from it
-    const bold = b.brave ? o.mass < e.mass*8 : (b.aggr > 0.85 && b.acc > 0.8 && o.mass < e.mass*4);
+    const bold = b.brave ? (o.mass < e.mass*4 && b.acc > 0.7) : (b.aggr > 0.85 && b.acc > 0.8 && o.mass < e.mass*3);
     const lure = o.isPlayer ? (b.brave ? 2.5 : 1.3) : 1;   // the real player is the most interesting target
-    if (o.r > e.r*1.1 && !bold && !o.duel && o.immune <= 0.5 && d < 220 + o.r && d < td) { td = d; threat = o; }
+    if (o.r > e.r*1.1 && !bold && !o.duel && o.immune <= 0.5 && d < (b.brave ? 260 : 380) + o.r && d < td) { td = d; threat = o; }
     if (free && e.r > o.r*1.1) { const s = o.mass/(d+80)*lure; if (s > ps) { ps = s; prey = o; } }
     else if (free && bold && o.r > e.r*1.1) { const s = e.mass*0.6/(d+80)*lure; if (s > ps) { ps = s; prey = o; } }
     else if (free && b.brave && o.isPlayer) { const s = e.mass*0.5/(d+80)*lure; if (s > ps) { ps = s; prey = o; } }
@@ -1762,11 +1869,16 @@ function botThink(e, dt){
   if (threat) {
     if (e.r < BUSH_R*0.95) {
       let best = null, bd = 1e9;
-      for (const k of bushes) { const d = Math.hypot(k.x-e.x, k.y-e.y); if (d < bd) { bd = d; best = k; } }
-      if (best && bd < 450) { b.tx = best.x; b.ty = best.y; return; }
+      for (const k of bushes) { if ((k.grow ?? 1) < 1 || !inSafe(k.x, k.y, 120)) continue; const d = Math.hypot(k.x-e.x, k.y-e.y); if (d < bd) { bd = d; best = k; } }
+      if (best && bd < 520) { b.tx = best.x; b.ty = best.y; if (td < 150) tryDash(e, best.x - e.x, best.y - e.y); return; }
     }
-    const dx = e.x-threat.x, dy = e.y-threat.y, d = Math.hypot(dx, dy) || 1;
-    b.tx = e.x + dx/d*300; b.ty = e.y + dy/d*300; return;
+    let dx = e.x-threat.x, dy = e.y-threat.y; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+    // don't flee out of the ring: bend the escape toward the middle when near the edge
+    if (arena) { const ox = ring.cx - e.x, oy = ring.cy - e.y, od = Math.hypot(ox, oy) || 1, edgeW = clamp((od - safeR*0.55) / (safeR*0.45), 0, 1);
+      dx += ox/od*edgeW*1.2; dy += oy/od*edgeW*1.2; const n = Math.hypot(dx, dy) || 1; dx /= n; dy /= n; }
+    b.tx = e.x + dx*300; b.ty = e.y + dy*300;
+    if (td < 150 && Math.random() < 0.6) tryDash(e, dx, dy);
+    return;
   }
   // bold big bots will ram a bush to flush out a juicy blob hiding in it
   b.smash = null;
@@ -1777,13 +1889,21 @@ function botThink(e, dt){
       if (hider && (!prey || hider.mass > prey.mass)) { b.smash = k; b.tx = k.x; b.ty = k.y; return; }
     }
   }
-  if (prey && (b.brave || Math.random() < b.aggr + 0.2)) { b.tx = prey.x + prey.vx*0.3; b.ty = prey.y + prey.vy*0.3; return; }
+  if (prey && (b.brave || Math.random() < b.aggr + 0.2)) {
+    b.tx = prey.x + prey.vx*0.3; b.ty = prey.y + prey.vy*0.3;
+    const gap = Math.hypot(prey.x - e.x, prey.y - e.y) - prey.r - e.r;
+    if (gap < 220 && gap > 30 && Math.random() < (b.brave ? 0.35 : 0.15)) tryDash(e, prey.x - e.x, prey.y - e.y);
+    return;
+  }
   if (e.r < 140) {
     let pp = null, pd = 1e9;
-    for (const p of pellets) { const dx = p.x-e.x, dy = p.y-e.y; if (Math.abs(dx) > 450 || Math.abs(dy) > 450) continue; const d = dx*dx+dy*dy; if (d < pd) { pd = d; pp = p; } }
+    for (const p of pellets) { const dx = p.x-e.x, dy = p.y-e.y; if (Math.abs(dx) > 450 || Math.abs(dy) > 450) continue; const d = dx*dx+dy*dy; if (d < pd && inSafe(p.x, p.y, e.r + 60)) { pd = d; pp = p; } }
     if (pp) { b.tx = pp.x; b.ty = pp.y; return; }
   }
-  if (!b.wx || Math.hypot(b.wx-e.x, b.wy-e.y) < 80 || Math.random() < 0.02) { b.wx = rand(200, WORLD-200); b.wy = rand(200, WORLD-200); }
+  if (!b.wx || Math.hypot(b.wx-e.x, b.wy-e.y) < 80 || Math.random() < 0.02 || !inSafe(b.wx, b.wy, 150)) {
+    if (arena) { const q = randInRing(Math.max(150, ring.r - safeR*0.8)); b.wx = q.x; b.wy = q.y; }
+    else { b.wx = rand(200, WORLD-200); b.wy = rand(200, WORLD-200); }
+  }
   b.tx = b.wx; b.ty = b.wy;
 }
 
@@ -1813,7 +1933,13 @@ function moveStep(dt){
         const n = Math.hypot(dx, dy); if (n > 0) { dx /= n; dy /= n; }
       }
     }
-    const sp = speedOf(e)*thr, k = Math.min(1, dt*7);
+    if (e.dash > 0) { dx = e.dashDx; dy = e.dashDy; thr = 1; }
+    // in an arena round, bots steer back inside a closing ring
+    if (arena && !e.isPlayer) {
+      const ox = e.x - ring.cx, oy = e.y - ring.cy, od = Math.hypot(ox, oy), edge = ring.r - e.r - 140;
+      if (od > edge && od > 1) { const w = clamp((od - edge)/160, 0, 1.5); dx -= ox/od*w*1.6; dy -= oy/od*w*1.6; const n = Math.hypot(dx, dy) || 1; dx /= n; dy /= n; thr = 1; }
+    }
+    const sp = speedOf(e)*thr, k = e.dash > 0 ? 1 : Math.min(1, dt*7);
     e.vx += (dx*sp - e.vx)*k; e.vy += (dy*sp - e.vy)*k;
     e.x = clamp(e.x + e.vx*dt, e.r*0.5, WORLD - e.r*0.5);
     e.y = clamp(e.y + e.vy*dt, e.r*0.5, WORLD - e.r*0.5);
@@ -2064,6 +2190,8 @@ function update(dt){
     if (e.cracked > 0) e.cracked -= dt;
     if (e.slow > 0) e.slow -= dt;
     if (e.bushCd > 0) e.bushCd -= dt;
+    if (e.dash > 0) e.dash -= dt;
+    if (e.dashCd > 0) e.dashCd -= dt;
     if (e.revenge && T > e.revenge.until) e.revenge = null;
   }
   moveStep(dt);
@@ -2073,10 +2201,15 @@ function update(dt){
   for (const du of duels.slice()) duelStep(du, dt);
   bubblePush(dt);
   for (const e of ents) if (!e.duel && e.mass > 150) e.mass -= (e.mass - 150)*0.0035*dt;
+  if (arena) ringStep(dt);
   ents = ents.filter(e => !e.dead);
-  // respawn
-  if (ents.filter(e => e.bot && !e.boss).length < BOT_COUNT) { respawnT -= dt; if (respawnT <= 0) { ents.push(makeBot(randomBotMass(true))); respawnT = rand(1, 3); } }
-  if (!ents.some(e => e.boss)) { bossT += dt; if (bossT > 45) { ents.push(makeBoss()); bossT = 0; } }
+  if (arena) {
+    if (state === 'play' && player && !player.dead && ents.length === 1) victory();
+  } else {
+    // menu backdrop: keep the world busy
+    if (ents.filter(e => e.bot && !e.boss).length < BOT_COUNT) { respawnT -= dt; if (respawnT <= 0) { ents.push(makeBot(randomBotMass(true))); respawnT = rand(1, 3); } }
+    if (!ents.some(e => e.boss)) { bossT += dt; if (bossT > 45) { ents.push(makeBoss()); bossT = 0; } }
+  }
   // fx
   for (const p of parts) { p.x += p.vx*dt; p.y += p.vy*dt; p.vx *= 0.94; p.vy *= 0.94; p.life -= dt; }
   parts = parts.filter(p => p.life > 0);
@@ -2084,6 +2217,10 @@ function update(dt){
   floats = floats.filter(f => f.life > 0);
   if (player && !player.dead) { lastPlayerPos.x = player.x; lastPlayerPos.y = player.y; if (stats) stats.peak = Math.max(stats.peak, player.mass); }
   camStep(dt);
+  if (player && state === 'play') {
+    const cd = Math.max(0, player.dashCd || 0), deg = 360 * (1 - cd / DASH_COOLDOWN);
+    const btn = $('dashBtn'); btn.style.setProperty('--cd', deg + 'deg'); btn.classList.toggle('cool', cd > 0);
+  }
   audioStep();
   hudT -= dt; if (hudT <= 0) { hudT = 0.2; updateHUD(); }
 }
@@ -2124,6 +2261,7 @@ function drawBlob(e){
     ctx.save(); ctx.setLineDash([8, 8]); ctx.lineDashOffset = -T*40; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2/cam.z;
     ctx.beginPath(); ctx.arc(e.x, e.y, r + 8, 0, Math.PI*2); ctx.stroke(); ctx.restore();
   }
+  if (e.crown) drawCrown(e);
   if (e.noLabel) return;
   const fs = Math.max(11, r*.36);
   ctx.font = `800 ${fs}px "Baloo 2", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -2161,6 +2299,14 @@ function drawStake(e){
   ctx.strokeText(g, x0, y); ctx.fillStyle = '#46e09a'; ctx.fillText(g, x0, y);
   ctx.strokeText(l, x0 + gw + gap, y); ctx.fillStyle = '#ff5f77'; ctx.fillText(l, x0 + gw + gap, y);
   ctx.textAlign = 'center';
+}
+// last round's champion wears a crown
+function drawCrown(e){
+  const w = Math.max(18, e.r*.75), h = w*.55, x = e.x - w/2, y = e.y - e.r - h*.55;
+  ctx.beginPath();
+  ctx.moveTo(x, y + h); ctx.lineTo(x, y + h*.3); ctx.lineTo(x + w*.25, y + h*.62); ctx.lineTo(x + w*.5, y);
+  ctx.lineTo(x + w*.75, y + h*.62); ctx.lineTo(x + w, y + h*.3); ctx.lineTo(x + w, y + h); ctx.closePath();
+  ctx.fillStyle = '#ffc94a'; ctx.fill(); ctx.lineWidth = Math.max(1.5, w*.06); ctx.strokeStyle = '#8a5a00'; ctx.stroke();
 }
 function drawFlame(e){
   const tier = e.streak >= 500 ? 3 : e.streak >= 100 ? 2 : 1;
@@ -2232,6 +2378,21 @@ function render(){
     for (let y = Math.max(S, Math.floor(top/S)*S); y <= Math.min(WORLD - S, bottom); y += S) ctx.fillRect(x - 1.5, y - 1.5, 3, 3);
   ctx.lineWidth = 6/z; ctx.strokeStyle = 'rgba(143,220,255,.35)'; ctx.strokeRect(0, 0, WORLD, WORLD);
   const inView = (x, y, r) => x + r > left && x - r < right && y + r > top && y - r < bottom;
+  if (arena) {
+    // dim everything outside the ring, then draw its glowing edge (and where it will close to next)
+    ctx.save();
+    ctx.beginPath(); ctx.rect(left - 50, top - 50, right - left + 100, bottom - top + 100);
+    ctx.arc(ring.cx, ring.cy, ring.r, 0, Math.PI*2, true);
+    ctx.fillStyle = 'rgba(150,20,55,.28)'; ctx.fill('evenodd');
+    ctx.beginPath(); ctx.arc(ring.cx, ring.cy, ring.r, 0, Math.PI*2);
+    ctx.lineWidth = 10/z; ctx.strokeStyle = `rgba(255,95,119,${ring.phase === 'shrink' ? .95 : .7})`; ctx.stroke();
+    ctx.lineWidth = 3/z; ctx.strokeStyle = 'rgba(255,220,230,.8)'; ctx.stroke();
+    if (ring.phase === 'wait' && ring.stage < RING_STAGES.length - 1) {
+      ctx.setLineDash([18/z, 14/z]); ctx.lineWidth = 3/z; ctx.strokeStyle = 'rgba(255,255,255,.28)';
+      ctx.beginPath(); ctx.arc(ring.cx, ring.cy, ring.to, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.restore();
+  }
 
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.font = '800 16px "Baloo 2", sans-serif';
@@ -2350,8 +2511,11 @@ function streakLabel(s){ return t(s >= 500 ? 'purpleFlame' : s >= 100 ? 'greenFl
 function updateHUD(){
   const playing = state === 'play' && player && !player.dead;
   $('hudL').hidden = !playing; $('lb').hidden = state === 'menu';
+  $('dashBtn').hidden = !playing || !!player.duel;
   if (playing) {
     $('hudSize').textContent = Math.round(player.mass);
+    $('hudAlive').textContent = `👥 ${aliveCount()}`;
+    $('hudRing').textContent = ring.phase === 'shrink' ? `⭕ ${t('ringClosing').replace(/[!¡！]/g, '')}` : (ring.stage >= RING_STAGES.length - 1 ? '⭕' : `⭕ ${Math.ceil(ring.t)}s`);
     $('hudStreak').textContent = `🔥 ${effStreak()}`; $('hudStreak').title = t('streakDays', {n: effStreak()});
   }
   $('bossTag').hidden = !(playing && bossVol > 0.25 && threatIsBoss);
@@ -2507,8 +2671,7 @@ function startGame(){
   const learn = $('learnIn').value, speak = $('speakIn').value;
   if (learn === speak) { refreshStart(); return; }
   settings.name = ($('nameIn').value || 'You').trim().slice(0, 14) || 'You';
-  settings.speak = speak; settings.learn = learn; settings.streak = +$('streakIn').value;
-  bumpStreak(); reportStreak();
+  settings.speak = speak; settings.learn = learn; settings.streak = -1;
   saveSettings(); loadProgress(); lastQ = -1; updateLessonPill();
   initAudio();
   if (adPending) return;
@@ -2531,26 +2694,46 @@ function showPreGameAd(){
   });
 }
 function beginRound(){
-  buildWorld(); spawnPlayer();
+  buildWorld(true); spawnPlayer();
   mouse.active = false; joy.on = false; joy.used = false; joy.thr = 0;
   state = 'play';
   $('start').hidden = true; $('over').hidden = true; $('duel').hidden = true;
   showBanner(t('startBanner'), true);
 }
+$('dashBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); playerDash(); });
 $('playBtn').addEventListener('click', startGame);
 $('againBtn').addEventListener('click', startGame);
-$('menuBtn').addEventListener('click', () => { $('over').hidden = true; $('start').hidden = false; state = 'menu'; });
+$('menuBtn').addEventListener('click', () => { $('over').hidden = true; $('start').hidden = false; state = 'menu'; buildWorld(false); });
 $('nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') startGame(); });
 
-function gameOver(killer){
-  state = 'over';
-  closeDuelUI(); sfx.lose();
+let lastRoundWon = false;
+function winsSoFar(){ try { return +(localStorage.getItem('languageio-wins') || 0); } catch (e) { return 0; } }
+// The daily streak counts any finished round, win or lose; lessons move on by learning words in duels.
+function finishRound(){ bumpStreak(); reportStreak(); }
+function showResults(){
   const secs = Math.round(T - stats.start);
-  $('overTitle').textContent = killer ? t('eatenBy', {name: killer.name}) : t('eaten');
-  $('overSub').textContent = killer && killer.boss ? t('overBoss') : t('overSub');
   $('sPeak').textContent = Math.round(stats.peak); $('sWords').textContent = stats.words; $('sDuels').textContent = stats.duels;
   $('sTime').textContent = secs >= 60 ? t('mins', {m: Math.floor(secs/60), s: secs%60}) : t('secs', {s: secs});
   setTimeout(() => { if (state === 'over') $('over').hidden = false; }, 900);
+}
+function victory(){
+  state = 'over'; lastRoundWon = true;
+  closeDuelUI(); sfx.win(); finishRound();
+  let wins = winsSoFar() + 1; try { localStorage.setItem('languageio-wins', String(wins)); } catch (e) {}
+  burst(player.x, player.y, player.r*1.5, '#ffc94a', 60);
+  $('overPlace').textContent = t('placeOf', {p: 1, n: stats.field});
+  $('overTitle').textContent = t('champion');
+  $('overSub').textContent = t('champSub', {n: wins});
+  showResults();
+}
+function gameOver(killer){
+  state = 'over'; lastRoundWon = false;
+  closeDuelUI(); sfx.lose(); finishRound();
+  const place = ents.filter(e => !e.dead && !e.isPlayer).length + 1;
+  $('overPlace').textContent = t('placeOf', {p: place, n: stats.field});
+  $('overTitle').textContent = killer ? t('eatenBy', {name: killer.name}) : (player && player.ringOut ? t('outRing') : t('eaten'));
+  $('overSub').textContent = killer && killer.boss ? t('overBoss') : t('overSub');
+  showResults();
 }
 
 function setMuteLabel(){ $('muteBtn').textContent = settings.muted ? '🔇' : '🔊'; $('muteBtn').setAttribute('aria-label', settings.muted ? t('soundOff') : t('soundOn')); }
