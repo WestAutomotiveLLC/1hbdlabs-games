@@ -73,6 +73,16 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
 .stat .v{font:800 26px var(--display);font-variant-numeric:tabular-nums;line-height:1.1}
 .btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
+.rules{background:var(--ink-2);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.rules summary{cursor:pointer;font:700 14px var(--body);color:var(--text)}
+.rules[open] summary{margin-bottom:10px}
+.info-link{justify-self:center;background:none;border:0;color:var(--muted);font:500 12px var(--body);cursor:pointer;padding:2px 6px}
+.info-link:hover{color:var(--text)}
+.credits{display:grid;gap:8px;font-size:13px;line-height:1.45;color:var(--muted)}
+.credits h3{margin:0;font:800 16px var(--display);color:var(--text)}
+.credits p{margin:0}
+.credits b{color:var(--text)}
+.credits a{color:var(--bubble)}
 /* ---------- practice ---------- */
 .p-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .p-title{font:800 30px var(--display);margin:0;line-height:1}
@@ -224,13 +234,17 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
       <button class="btn-ghost" id="practiceBtn" type="button" data-i18n="practiceBtn">Practice words</button>
       <button class="btn-primary" id="playBtn" type="button" data-i18n="playBtn">Play survival</button>
     </div>
-    <ul class="how">
+    <details class="rules">
+      <summary data-i18n="howTo">How to play</summary>
+      <ul class="how">
       <li data-i18n="how1">Steer with your mouse or finger. Eat floating letters to grow.</li>
       <li style="--dot:var(--bubble)" data-i18n="how2">Bump any blob to start a one-word duel. Whoever answers first wins.</li>
       <li style="--dot:var(--ember)" data-i18n="how3">The winner takes up to their own size from the loser. Run out of size and you're eaten, so big blobs are deadly. Big losers barely get knocked back, so small blobs can hit them again.</li>
       <li style="--dot:var(--good)" data-i18n="how4">Blobs near you show what a duel is worth: green is what you'd win, red is what you'd lose.</li>
       <li style="--dot:var(--thorn)" data-i18n="how5">Small blobs can hide in thornbushes. A big blob can smash a bush to expose who's hiding, but it cracks open: it loses 20% of its size, slows down, and loses more in duels for a few seconds. Bushes grow back after 40 seconds.</li>
     </ul>
+    </details>
+    <button class="info-link" id="infoBtn" type="button">⚙ <span data-i18n="settingsCredits">Settings &amp; credits</span></button>
   </div>
 </div>
 
@@ -269,6 +283,20 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid 
     <div class="more-head" data-i18n="moreHead">More games by 1HBDLabs</div>
     <div class="more-list" id="moreList"></div>
     <div class="more-foot"><a href="https://westautomotivellc.github.io/1hbdlabs-games/" target="_blank" rel="noopener" data-i18n="allGames">All games</a> · <a href="https://westautomotivellc.github.io/1hbdlabs-games/language-io/privacy/" target="_blank" rel="noopener" data-i18n="privacy">Privacy</a></div>
+  </div>
+</div>
+
+<div class="screen" id="info" hidden>
+  <div class="card">
+    <div class="p-head"><h2 class="p-title" data-i18n="settingsCredits">Settings &amp; credits</h2><button class="btn-ghost p-close" id="infoClose" type="button" data-i18n="back">Back</button></div>
+    <button class="btn-ghost" id="infoSound" type="button"></button>
+    <div class="credits">
+      <h3 data-i18n="credits">Credits</h3>
+      <p><b data-i18n="musicLabel">Boss music</b><br>"Esoteric Execution – Epic Dark and Horror Soundtrack" by <a href="https://pixabay.com/users/joelfazhari-16466931/" target="_blank" rel="noopener">Joel Fazhari</a>, from <a href="https://pixabay.com/music/mystery-esoteric-execution-epic-dark-and-horror-soundtrack-197591/" target="_blank" rel="noopener">Pixabay</a> (Pixabay Content License)</p>
+      <p><b data-i18n="wordsLabel">Word course</b><br><span data-i18n="wordsCredit">900-word course from The Last Translator by 1HBDLabs</span></p>
+      <p><b data-i18n="gameLabel">Game</b><br><span data-i18n="madeBy">Made by 1HBDLabs</span> · <a href="mailto:1HBDLabs@gmail.com">1HBDLabs@gmail.com</a></p>
+      <p><a href="https://westautomotivellc.github.io/1hbdlabs-games/language-io/privacy/" target="_blank" rel="noopener" data-i18n="privacy">Privacy</a></p>
+    </div>
   </div>
 </div>
 
@@ -1215,6 +1243,7 @@ const I18N = {
     tagline: "Eat or get eaten. Every bite is a word duel in the language you're learning.",
     name: "Name", speak: "I speak", learning: "I'm learning", streak: "Daily streak", streakTest: "(test setting)",
     realStreak: "My real streak", streakWord: "day streak",
+    howTo: "How to play", settingsCredits: "Settings & credits", credits: "Credits", musicLabel: "Boss music", wordsLabel: "Word course", wordsCredit: "900-word course from The Last Translator by 1HBDLabs", gameLabel: "Game", madeBy: "Made by 1HBDLabs",
     days: "{n} days", looksOnly: "Looks only, no power: {x}.",
     noLook: "No look yet", goldRing: "Gold ring", blueFlame: "Blue flame", greenFlame: "Big green flame", purpleFlame: "Purple flame + boss music",
     lessonHead: "{lang} lesson {n} of {total} · {k}/{m} learned",
@@ -1256,6 +1285,7 @@ const I18N = {
     tagline: "Come o te comen. Cada mordida es un duelo de palabras en el idioma que estás aprendiendo.",
     name: "Nombre", speak: "Hablo", learning: "Estoy aprendiendo", streak: "Racha diaria", streakTest: "(ajuste de prueba)",
     realStreak: "Mi racha real", streakWord: "días de racha",
+    howTo: "Cómo jugar", settingsCredits: "Ajustes y créditos", credits: "Créditos", musicLabel: "Música del jefe", wordsLabel: "Curso de palabras", wordsCredit: "Curso de 900 palabras de The Last Translator, de 1HBDLabs", gameLabel: "Juego", madeBy: "Hecho por 1HBDLabs",
     days: "{n} días", looksOnly: "Solo apariencia, sin poder: {x}.",
     noLook: "Sin apariencia aún", goldRing: "Anillo dorado", blueFlame: "Llama azul", greenFlame: "Gran llama verde", purpleFlame: "Llama morada + música de jefe",
     lessonHead: "{lang}: lección {n} de {total} · {k}/{m} aprendidas",
@@ -1297,6 +1327,7 @@ const I18N = {
     tagline: "Mange ou fais-toi manger. Chaque bouchée est un duel de mots dans la langue que tu apprends.",
     name: "Nom", speak: "Je parle", learning: "J'apprends", streak: "Série quotidienne", streakTest: "(réglage de test)",
     realStreak: "Ma vraie série", streakWord: "jours de série",
+    howTo: "Comment jouer", settingsCredits: "Réglages et crédits", credits: "Crédits", musicLabel: "Musique du boss", wordsLabel: "Cours de mots", wordsCredit: "Cours de 900 mots tiré de The Last Translator, par 1HBDLabs", gameLabel: "Jeu", madeBy: "Créé par 1HBDLabs",
     days: "{n} jours", looksOnly: "Apparence seulement, aucun pouvoir : {x}.",
     noLook: "Pas encore d'apparence", goldRing: "Anneau doré", blueFlame: "Flamme bleue", greenFlame: "Grande flamme verte", purpleFlame: "Flamme violette + musique de boss",
     lessonHead: "{lang} : leçon {n} sur {total} · {k}/{m} appris",
@@ -1338,6 +1369,7 @@ const I18N = {
     tagline: "먹거나 먹히거나. 한 입 한 입이 배우는 언어로 펼치는 단어 대결이에요.",
     name: "이름", speak: "내 언어", learning: "배우는 언어", streak: "연속 학습일", streakTest: "(테스트 설정)",
     realStreak: "내 실제 연속 기록", streakWord: "일 연속",
+    howTo: "게임 방법", settingsCredits: "설정 및 크레딧", credits: "크레딧", musicLabel: "보스 음악", wordsLabel: "단어 코스", wordsCredit: "1HBDLabs의 The Last Translator 900단어 코스", gameLabel: "게임", madeBy: "제작: 1HBDLabs",
     days: "{n}일", looksOnly: "외형만 바뀌고 능력은 없어요: {x}.",
     noLook: "아직 외형 없음", goldRing: "금색 고리", blueFlame: "파란 불꽃", greenFlame: "큰 초록 불꽃", purpleFlame: "보라 불꽃 + 보스 음악",
     lessonHead: "{lang} 레슨 {n}/{total} · {k}/{m}개 익힘",
@@ -1379,6 +1411,7 @@ const I18N = {
     tagline: "Kumain o kainin. Bawat kagat ay word duel sa wikang pinag-aaralan mo.",
     name: "Pangalan", speak: "Wika ko", learning: "Pinag-aaralan ko", streak: "Araw-araw na streak", streakTest: "(test setting)",
     realStreak: "Totoong streak ko", streakWord: "araw na streak",
+    howTo: "Paano maglaro", settingsCredits: "Settings at credits", credits: "Credits", musicLabel: "Boss music", wordsLabel: "Kurso ng salita", wordsCredit: "900-salitang kurso mula sa The Last Translator ng 1HBDLabs", gameLabel: "Laro", madeBy: "Gawa ng 1HBDLabs",
     days: "{n} araw", looksOnly: "Itsura lang, walang dagdag na lakas: {x}.",
     noLook: "Wala pang itsura", goldRing: "Gintong singsing", blueFlame: "Asul na apoy", greenFlame: "Malaking berdeng apoy", purpleFlame: "Lilang apoy + boss music",
     lessonHead: "{lang} lesson {n} ng {total} · {k}/{m} natutunan",
@@ -1464,6 +1497,11 @@ function bumpStreak(){
 }
 // The test menu can preview a look; 'My real streak' (-1) uses the real count.
 const effStreak = () => settings.streak >= 0 ? settings.streak : realStreak();
+// In the phone app, send the streak to the home-screen widget.
+function reportStreak(){
+  const bridge = window.ReactNativeWebView; if (!bridge) return;
+  try { bridge.postMessage(JSON.stringify({type: 'streak', count: realStreak(), lastDay: readStreak().last, language: UI})); } catch (e) {}
+}
 let savedSettings = null;
 try { savedSettings = JSON.parse(localStorage.getItem('languageio-settings') || 'null'); } catch (e) {}
 if (savedSettings) Object.assign(settings, savedSettings);
@@ -1536,22 +1574,33 @@ const $ = id => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ================= audio ================= */
-let AC = null, master = null, bossGain = null, nextNote = 0, noteIdx = 0, lastPop = 0;
-const MOTIF = [110, 130.81, 123.47, 103.83, 110, 98, 103.83, 82.41];
+let AC = null, master = null, bossGain = null, lastPop = 0, musicLoading = false;
+// Threat music: "Esoteric Execution" by Joel Fazhari (Pixabay). Only a player who is smaller hears it, fading in
+// as a bigger blob closes in, and at full strength during a duel against a bigger blob.
+const MUSIC_URLS = ['boss-music.mp3', 'https://westautomotivellc.github.io/1hbdlabs-games/language-io/boss-music.mp3'];
 function initAudio(){
   if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
   try {
     AC = new (window.AudioContext || window.webkitAudioContext)();
     master = AC.createGain(); master.gain.value = settings.muted ? 0 : 0.9; master.connect(AC.destination);
     bossGain = AC.createGain(); bossGain.gain.value = 0; bossGain.connect(master);
-    const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 340; lp.Q.value = 7;
-    const mix = AC.createGain(); mix.gain.value = 0.28;
-    const pulse = AC.createGain(); pulse.gain.value = 0.6;
-    [[55,'sawtooth'],[77.78,'sawtooth'],[41.2,'sine']].forEach(([f,t]) => { const o = AC.createOscillator(); o.type = t; o.frequency.value = f; o.connect(mix); o.start(); });
-    mix.connect(lp); lp.connect(pulse); pulse.connect(bossGain);
-    const lfo = AC.createOscillator(); lfo.frequency.value = 1.15; const lg = AC.createGain(); lg.gain.value = 0.4; lfo.connect(lg); lg.connect(pulse.gain); lfo.start();
-    const lfo2 = AC.createOscillator(); lfo2.frequency.value = 0.07; const l2 = AC.createGain(); l2.gain.value = 160; lfo2.connect(l2); l2.connect(lp.frequency); lfo2.start();
+    loadMusic();
   } catch (e) { AC = null; }
+}
+async function loadMusic(){
+  if (musicLoading || !AC) return; musicLoading = true;
+  for (const url of MUSIC_URLS) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.arrayBuffer();
+      const buf = await new Promise((ok, bad) => AC.decodeAudioData(data, ok, bad));
+      const src = AC.createBufferSource(); src.buffer = buf; src.loop = true;
+      src.connect(bossGain); src.start();   // loops silently; the gain decides when it's heard
+      return;
+    } catch (e) { /* try the next copy */ }
+  }
+  musicLoading = false;
 }
 function tone(f, dur, type='sine', vol=0.15, slide=0, delay=0, dest){
   if (!AC || settings.muted) return;
@@ -1571,28 +1620,25 @@ const sfx = {
   crack(){ tone(160,.28,'square',.09,.45); },
   pop(){ if (!AC) return; if (AC.currentTime - lastPop < 0.06) return; lastPop = AC.currentTime; tone(rand(720,900),.05,'sine',.04,1.4); },
 };
-let bossVol = 0;
+let bossVol = 0, threatIsBoss = false;
 function audioStep(){
-  let vol = 0;
+  let vol = 0; threatIsBoss = false;
   if (state === 'play' && player && !player.dead) {
+    const du = player.duel;
+    if (du) {
+      const opp = du.att === player ? du.def : du.att;
+      if (opp.mass > player.mass) { vol = 1; threatIsBoss = !!opp.boss; }
+    }
     for (const e of ents) {
-      if (e.streak >= 500 && !e.dead && e !== player) {
-        const d = Math.max(0, Math.hypot(e.x-player.x, e.y-player.y) - e.r - player.r);
-        const v = Math.pow(clamp(1 - d/1700, 0, 1), 1.6);
-        if (v > vol) vol = v;
-      }
+      if (e === player || e.dead || e.mass <= player.mass * 1.15) continue;
+      const d = Math.max(0, Math.hypot(e.x-player.x, e.y-player.y) - e.r - player.r);
+      const v = Math.pow(clamp(1 - d/900, 0, 1), 1.6);   // starts quietly about 900 away, loud when close
+      if (v > vol) { vol = v; threatIsBoss = !!e.boss; }
     }
   }
   bossVol += (vol - bossVol) * 0.05;
   if (!AC) return;
-  bossGain.gain.setTargetAtTime(settings.muted ? 0 : vol*0.6, AC.currentTime, 0.3);
-  if (vol > 0.02 && AC.currentTime >= nextNote) {
-    if (nextNote < AC.currentTime - 0.2) nextNote = AC.currentTime + 0.05;
-    const f = MOTIF[noteIdx++ % MOTIF.length];
-    tone(f, 1.1, 'triangle', 0.35, 0, nextNote - AC.currentTime, bossGain);
-    tone(f/2, 1.1, 'sine', 0.3, 0, nextNote - AC.currentTime, bossGain);
-    nextNote += 0.78;
-  }
+  bossGain.gain.setTargetAtTime(settings.muted ? 0 : vol*0.75, AC.currentTime, 0.6);
 }
 
 /* ================= world ================= */
@@ -1628,7 +1674,8 @@ function pickStreak(){ const r = Math.random(); return r<.45 ? 0 : r<.7 ? Math.f
 function randomBotMass(fresh){ const r = Math.random(); if (fresh) return r<.8 ? rand(12,40) : rand(60,180); return r<.6 ? rand(12,45) : r<.87 ? rand(60,260) : rand(300,800); }
 function makeBot(mass){
   return mkEnt({mass, name: pickName(), hue: Math.floor(rand(0,360)), streak: pickStreak(),
-    bot: {acc: rand(.55,.9), spd: rand(.8,1.2), aggr: rand(.3,1), careful: rand(.3,1), think: 0, tx: 0, ty: 0, wx: 0, wy: 0}});
+    bot: {acc: rand(.55,.9), spd: rand(.8,1.2), aggr: rand(.3,1), careful: rand(.3,1), think: 0, tx: 0, ty: 0, wx: 0, wy: 0,
+      brave: Math.random() < 0.5}});   // about half the bots hunt anyone, even bigger blobs; the rest play it safe
 }
 function makeBoss(){
   return mkEnt({mass: rand(900,1300), name: 'La Sombra', hue: 272, streak: 500, boss: true,
@@ -1695,7 +1742,7 @@ function speedOf(e){ return 400*Math.pow(e.mass, -0.27) * (e.slow>0 ? 0.45 : 1) 
 
 function botThink(e, dt){
   const b = e.bot; b.think -= dt; if (b.think > 0) return; b.think = rand(.18, .35);
-  const view = 420 + e.r*2.2;
+  const view = (b.brave ? 620 : 420) + e.r*2.2;
   let threat = null, td = 1e9, prey = null, ps = 0;
   for (const o of ents) {
     if (o === e || o.dead) continue;
@@ -1704,10 +1751,12 @@ function botThink(e, dt){
     const d = Math.hypot(dx, dy) - o.r - e.r;
     const free = !o.duel && !o.hidden && o.immune <= 0;
     // bold, accurate bots will poke a bigger blob to steal their own size from it
-    const bold = b.aggr > 0.85 && b.acc > 0.8 && o.mass < e.mass*4;
+    const bold = b.brave ? o.mass < e.mass*8 : (b.aggr > 0.85 && b.acc > 0.8 && o.mass < e.mass*4);
+    const lure = o.isPlayer ? (b.brave ? 2.5 : 1.3) : 1;   // the real player is the most interesting target
     if (o.r > e.r*1.1 && !bold && !o.duel && o.immune <= 0.5 && d < 220 + o.r && d < td) { td = d; threat = o; }
-    if (free && e.r > o.r*1.1) { const s = o.mass/(d+80); if (s > ps) { ps = s; prey = o; } }
-    else if (free && bold && o.r > e.r*1.1) { const s = e.mass*0.6/(d+80); if (s > ps) { ps = s; prey = o; } }
+    if (free && e.r > o.r*1.1) { const s = o.mass/(d+80)*lure; if (s > ps) { ps = s; prey = o; } }
+    else if (free && bold && o.r > e.r*1.1) { const s = e.mass*0.6/(d+80)*lure; if (s > ps) { ps = s; prey = o; } }
+    else if (free && b.brave && o.isPlayer) { const s = e.mass*0.5/(d+80)*lure; if (s > ps) { ps = s; prey = o; } }
   }
   if (threat && e.hidden) { b.tx = e.x; b.ty = e.y; return; }
   if (threat) {
@@ -1728,7 +1777,7 @@ function botThink(e, dt){
       if (hider && (!prey || hider.mass > prey.mass)) { b.smash = k; b.tx = k.x; b.ty = k.y; return; }
     }
   }
-  if (prey && Math.random() < b.aggr + 0.2) { b.tx = prey.x + prey.vx*0.3; b.ty = prey.y + prey.vy*0.3; return; }
+  if (prey && (b.brave || Math.random() < b.aggr + 0.2)) { b.tx = prey.x + prey.vx*0.3; b.ty = prey.y + prey.vy*0.3; return; }
   if (e.r < 140) {
     let pp = null, pd = 1e9;
     for (const p of pellets) { const dx = p.x-e.x, dy = p.y-e.y; if (Math.abs(dx) > 450 || Math.abs(dy) > 450) continue; const d = dx*dx+dy*dy; if (d < pd) { pd = d; pp = p; } }
@@ -2229,7 +2278,7 @@ function render(){
   }
   if (bossVol > 0.02) {
     const g = ctx.createRadialGradient(W/2, H/2, Math.min(W, H)*.3, W/2, H/2, Math.max(W, H)*.75);
-    g.addColorStop(0, 'rgba(60,0,90,0)'); g.addColorStop(1, `rgba(60,0,90,${bossVol*.65})`);
+    g.addColorStop(0, 'rgba(60,0,90,0)'); g.addColorStop(1, `rgba(60,0,90,${bossVol*.45})`);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
 }
@@ -2305,7 +2354,7 @@ function updateHUD(){
     $('hudSize').textContent = Math.round(player.mass);
     $('hudStreak').textContent = `🔥 ${effStreak()}`; $('hudStreak').title = t('streakDays', {n: effStreak()});
   }
-  $('bossTag').hidden = !(playing && bossVol > 0.25);
+  $('bossTag').hidden = !(playing && bossVol > 0.25 && threatIsBoss);
   if (state !== 'menu') {
     const sorted = ents.slice().sort((a, b) => b.mass - a.mass);
     const rows = sorted.slice(0, 8).map((e, i) => `<div class="row${e === player ? ' me' : ''}"><span>${i+1}</span><span class="n">${esc(e.name)}</span><span>${Math.round(e.mass)}</span></div>`);
@@ -2335,7 +2384,7 @@ function refreshStart(e){
   }
   const learn = $('learnIn').value, speak = $('speakIn').value;
   // "I speak" is also the interface language
-  if (UI !== speak) { UI = speak; applyUI(); setMuteLabel(); buildMoreGames(); }
+  if (UI !== speak) { UI = speak; applyUI(); setMuteLabel(); buildMoreGames(); reportStreak(); }
   { const sv = +$('streakIn').value, shown = sv >= 0 ? sv : realStreak();
     $('streakNote').textContent = t('looksOnly', {x: streakLabel(shown)});
     $('streakBadge').innerHTML = `<b>🔥 ${realStreak()}</b><small>${esc(t('streakWord'))}</small>`; }
@@ -2375,16 +2424,23 @@ function buildMoreGames(){
   }).join('');
 }
 buildMoreGames();
+setTimeout(reportStreak, 500);
 $('moreBtn').addEventListener('click', () => {
   const open = $('morePanel').hidden; $('morePanel').hidden = !open; $('moreBtn').setAttribute('aria-expanded', String(open));
 });
 refreshStart();
 function syncLobbyCorner(){
-  const lobby = state !== 'play' && $('practice').hidden && $('adWait').hidden;
+  const lobby = state !== 'play' && $('practice').hidden && $('adWait').hidden && $('info').hidden;
   $('moreGames').hidden = !lobby;
   if (!lobby) { $('morePanel').hidden = true; $('moreBtn').setAttribute('aria-expanded', 'false'); }
 }
 setInterval(syncLobbyCorner, 250);
+
+/* ----- settings & credits ----- */
+function syncInfoSound(){ $('infoSound').textContent = (settings.muted ? '🔇 ' : '🔊 ') + (settings.muted ? t('soundOff') : t('soundOn')); }
+$('infoBtn').addEventListener('click', () => { syncInfoSound(); $('start').hidden = true; $('info').hidden = false; });
+$('infoClose').addEventListener('click', () => { $('info').hidden = true; $('start').hidden = false; });
+$('infoSound').addEventListener('click', () => { $('muteBtn').click(); syncInfoSound(); });
 
 /* ----- practice flashcards ----- */
 const pr = {deck: [], pos: 0, flipped: false, done: 0, total: 0, learn: 'es', speak: 'en'};
@@ -2452,7 +2508,7 @@ function startGame(){
   if (learn === speak) { refreshStart(); return; }
   settings.name = ($('nameIn').value || 'You').trim().slice(0, 14) || 'You';
   settings.speak = speak; settings.learn = learn; settings.streak = +$('streakIn').value;
-  bumpStreak();
+  bumpStreak(); reportStreak();
   saveSettings(); loadProgress(); lastQ = -1; updateLessonPill();
   initAudio();
   if (adPending) return;
