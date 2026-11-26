@@ -96,8 +96,10 @@
   </div>
 
 <script>
-// Quiz flow: the five learner types → 5-second challenge → [family (es/tl
-// only)] → level → struggle (depends on level) → kind of fun → time → result.
+// Quiz flow: the five learner types → language to learn (skipped with
+// ?learn=xx) → 5-second challenge in that language → [family (es/tl pages,
+// learning English only)] → level → struggle (depends on level) → kind of fun
+// → time → result.
 // The result type comes from the struggle answer, and the game from the type
 // (see chooseGame).
 
@@ -119,13 +121,31 @@ if (GA_ID) {
   window.gtag('config', GA_ID);
 }
 function track(name, params) {
-  if (window.gtag) window.gtag('event', name, Object.assign({ quiz_lang: lang }, params || {}));
+  var base = { quiz_lang: lang };
+  if (state && state.learn) base.learn_lang = state.learn;
+  if (window.gtag) window.gtag('event', name, Object.assign(base, params || {}));
 }
 
+// langs: the languages each game covers. A game is only recommended when it
+// has both the language being learned and the player's own (page) language,
+// so not every game shows up for every language. Edit these lists when a game
+// adds or drops a language. play: a browser game, no download needed.
 var GAMES = {
-  lt: { icon: '../assets/translator-icon.png', name: 'The Last Translator', words: 900, get: '../get/', page: '../the-last-translator/' },
-  wb: { icon: '../assets/wordbust-icon.png', name: 'WordBust', words: 600, get: '../get/wordbust/', page: '../wordbust/' },
-  tomato: { icon: '../assets/tomato-icon.png', name: 'Tomato Escape', words: 250, get: TOMATO_GET, page: '../tomato-escape/' }
+  lt: { icon: '../assets/translator-icon.png', name: 'The Last Translator', words: 900, get: '../get/', page: '../the-last-translator/', langs: ['en', 'es', 'tl', 'fr', 'ko'] },
+  wb: { icon: '../assets/wordbust-icon.png', name: 'WordBust', words: 600, get: '../get/wordbust/', page: '../wordbust/', langs: ['en', 'es', 'tl'] },
+  tomato: { icon: '../assets/tomato-icon.png', name: 'Tomato Escape', words: 250, get: TOMATO_GET, page: '../tomato-escape/', langs: ['en', 'es', 'fr', 'tl'] },
+  lio: { icon: '../assets/languageio-icon.png', name: 'Language.io', words: 900, play: '../language-io/', page: '../language-io/', langs: ['en', 'es', 'tl', 'fr', 'ko'] }
+};
+var GAME_ORDER = ['lt', 'wb', 'tomato', 'lio'];
+var LEARN = ['es', 'en', 'fr', 'tl', 'ko'];
+
+// The challenge word ("dog") and "cat" in each language you can learn.
+var WORDS = {
+  es: { dog: 'perro', cat: 'gato' },
+  en: { dog: 'dog', cat: 'cat' },
+  tl: { dog: 'aso', cat: 'pusa' },
+  fr: { dog: 'chien', cat: 'chat' },
+  ko: { dog: '개 (gae)', cat: '고양이 (goyangi)' }
 };
 
 // Type keys → names: comeback = Better With Friends, gamebrain = Loves
@@ -154,22 +174,26 @@ var T = {
   en: {
     stepOf: 'Question {n} of {t}',
     eyebrow: '30-second quiz',
-    title: 'Which Spanish learner are you?',
-    intro: "Most people are a mix of these 5. Take the 30-second quiz to find yours, and why Spanish hasn't stuck yet.",
+    title: 'Which {L} learner are you?',
+    titleAny: 'Which language learner are you?',
+    intro: "Most people are a mix of these 5. Take the 30-second quiz to find yours, and why {L} hasn't stuck yet.",
+    introAny: "Most people are a mix of these 5. Take the 30-second quiz to find yours, and why your new language hasn't stuck yet.",
+    learnQ: 'First: which language do you want to learn?',
+    langNames: { es: 'Spanish', en: 'English', tl: 'Tagalog', fr: 'French', ko: 'Korean' },
     start: 'Find out which one I am',
     family: null,
-    level: 'Be honest: what happens when someone actually speaks Spanish to you?',
+    level: 'Be honest: what happens when someone actually speaks {L} to you?',
     levels: [
       'I catch one word, smile, and nod like I understood.',
       "I can build a sentence, as long as nobody's waiting on me.",
       'I get there slowly, but people switch to English to save time.',
       "I understand almost everything, until someone uses slang or a saying and the joke's over before I get it."
     ],
-    struggleQ: { A: "Why hasn't it stuck yet?", B: 'What trips you up most?', C: 'What slows you down?', D: 'When does your Spanish let you down?' },
+    struggleQ: { A: "Why hasn't it stuck yet?", B: 'What trips you up most?', C: 'What slows you down?', D: 'When does your {L} let you down?' },
     struggle: {
       A: ["I've started before. The app is still on my phone somewhere.",
           'Studying feels like homework, and I already did my time in school.',
-          "I already know perro and gato. I want words I'd actually use.",
+          "I already know «{dog}» and «{cat}». I want words I'd actually use.",
           "I'm starting from zero and don't know where to begin."],
       B: ["I know the word, but I'd never spell it right.",
           'I understand more than I can say.',
@@ -184,8 +208,8 @@ var T = {
           'Sayings and slang lose me.',
           'Nothing is at my level, so I stopped practicing.']
     },
-    challengeTitle: 'Quick test: you have 5 seconds.',
-    challengeQ: 'What does «perro» mean?',
+    challengeTitle: 'Translate this {L} word as fast as you can. 5 seconds.',
+    challengeQ: 'What does «{w}» mean?',
     challengeOpts: ['Dog', 'Cat', 'Bread', 'Door'],
     challengeRight: "You answered against a 5-second timer. That's how every round feels.",
     challengeMissed: "The timer got you. That's the skill nobody trains, until now.",
@@ -203,7 +227,7 @@ var T = {
       gamebrain: ['Loves Learning, Not School', "You're curious. You just can't stand being taught like it's homework. The second it feels like class, your brain checks out. Disguise the learning as play and you'll be surprised how much sticks."],
       fresh: ['The Science Learner', "You don't want to be told you're doing great. You want to see exactly what you missed, why, and what to fix next. Give you a clear plan and real feedback and you'll outwork everyone."],
       hidden: ['Determined But Forgetful', "You keep showing up, and the same words keep slipping away. It's not effort you're missing. You need the words you forget to come back again and again until they stick for good."],
-      pressure: ['Perfect Until Pressure', "Your Spanish is good, until it matters. To truly own a language you have to recall words fast, under pressure. That's the one thing you've never practiced. This is the perfect practice for you."]
+      pressure: ['Perfect Until Pressure', "Your {L} is good, until it matters. To truly own a language you have to recall words fast, under pressure. That's the one thing you've never practiced. This is the perfect practice for you."]
     },
     typeShort: {
       comeback: 'Relearning. Quits alone, sticks with a crew.',
@@ -221,23 +245,26 @@ var T = {
       useful: "No more cat-and-dog lists: everyday words you'll actually say.",
       small: 'Small lessons, just 10 words a day, with built-in flashcards.',
       spelling: 'You type the answers, so the spelling sticks.',
-      both: 'You practice both ways: Spanish → English and English → Spanish.',
+      both: 'You practice both ways: {L} → English and English → {L}.',
       errors: 'An error counter tracks the exact words you miss, so you fix your weak spots.',
       duels: 'Challenge friends to duels. Losing to your cousin is great motivation.',
       speed: "Timed rounds train you to answer before the moment's gone.",
       words: "Up to 900 words, so there's always a next level.",
       pressure: 'Every round is played under pressure, exactly when words used to vanish.',
       recall: 'Fast recall frees your brain to catch slang and sayings.',
-      all: 'Three games, three speeds. Something is always at your level.'
+      all: 'Different games, different speeds. Something is always at your level.'
     },
     tenADay: '10 words a day is all it takes.',
     yourGame: 'Made for you',
     blurbs: {
       lt: 'Battle through story worlds where every correct answer lands a hit.',
       wb: 'Catch falling words before they hit the top. An arcade game that teaches 600 words.',
-      tomato: 'Help a spy tomato escape the sauce factory. Every gate opens with a word.'
+      tomato: 'Help a spy tomato escape the sauce factory. Every gate opens with a word.',
+      lio: 'A blob battle where every bump is a word duel. Plays right in your browser.'
     },
     words: '{n} words · free to download',
+    wordsPlay: '{n} words · free in your browser',
+    play: 'Play free now',
     madeFor: "This game was made for your learning type. It's designed to make you forget you're learning, and give you the tools to start speaking.",
     plan: 'Your plan: 10 words a day.',
     download: 'Download free',
@@ -255,23 +282,27 @@ var T = {
   es: {
     stepOf: 'Pregunta {n} de {t}',
     eyebrow: 'Quiz de 30 segundos',
-    title: '¿Qué tipo de aprendiz de inglés eres?',
-    intro: 'La mayoría es una mezcla de estos 5. Haz el quiz de 30 segundos y descubre el tuyo, y por qué el inglés no se te ha quedado.',
+    title: '¿Qué tipo de aprendiz de {L} eres?',
+    titleAny: '¿Qué tipo de aprendiz de idiomas eres?',
+    intro: 'La mayoría es una mezcla de estos 5. Haz el quiz de 30 segundos y descubre el tuyo, y por qué el {L} no se te ha quedado.',
+    introAny: 'La mayoría es una mezcla de estos 5. Haz el quiz de 30 segundos y descubre el tuyo, y por qué el idioma que estudias no se te ha quedado.',
+    learnQ: 'Primero: ¿qué idioma quieres aprender?',
+    langNames: { es: 'español', en: 'inglés', tl: 'tagalo', fr: 'francés', ko: 'coreano' },
     start: 'Descubrir cuál soy',
     family: '¿A quién quieres entender sin pedirle que te repita?',
     families: ['A mis hijos o nietos, que me contestan en inglés.', 'A mi familia en Estados Unidos.', 'A la familia de mi pareja.', 'A la gente del trabajo.'],
-    level: 'Sé sincero: ¿qué pasa cuando alguien te habla en inglés?',
+    level: 'Sé sincero: ¿qué pasa cuando alguien te habla en {L}?',
     levels: [
       'Entiendo una palabra, sonrío y digo que sí con la cabeza.',
       'Puedo armar una frase… si nadie está esperando.',
       'Me doy a entender despacio, pero me cambian al español para ahorrar tiempo.',
       'Entiendo casi todo, hasta que usan un dicho o slang y el chiste ya pasó.'
     ],
-    struggleQ: { A: '¿Por qué no se te ha quedado?', B: '¿Qué es lo que más te cuesta?', C: '¿Qué te frena?', D: '¿Cuándo te falla el inglés?' },
+    struggleQ: { A: '¿Por qué no se te ha quedado?', B: '¿Qué es lo que más te cuesta?', C: '¿Qué te frena?', D: '¿Cuándo te falla el {L}?' },
     struggle: {
       A: ['Ya empecé antes. La app sigue por ahí en mi teléfono.',
           'Estudiar se siente como tarea, y yo ya terminé la escuela.',
-          "Ya sé «dog» y «cat». Quiero palabras que de verdad voy a usar.",
+          "Ya sé «{dog}» y «{cat}». Quiero palabras que de verdad voy a usar.",
           'Empiezo de cero y no sé por dónde empezar.'],
       B: ['Sé la palabra, pero no la escribiría bien.',
           'Entiendo más de lo que puedo decir.',
@@ -286,9 +317,9 @@ var T = {
           'Los dichos y el slang me pierden.',
           'Nada está a mi nivel, así que dejé de practicar.']
     },
-    challengeTitle: 'Prueba rápida: tienes 5 segundos.',
-    challengeQ: '¿Cómo se dice «perro» en inglés?',
-    challengeOpts: ['Dog', 'Cat', 'Bread', 'Door'],
+    challengeTitle: 'Traduce esta palabra en {L} lo más rápido que puedas. 5 segundos.',
+    challengeQ: '¿Qué significa «{w}»?',
+    challengeOpts: ['Perro', 'Gato', 'Pan', 'Puerta'],
     challengeRight: 'Respondiste con 5 segundos en el reloj. Así se siente cada ronda.',
     challengeMissed: 'El reloj te ganó. Esa es la habilidad que nadie entrena… hasta ahora.',
     speedFast: '⚡ {s} s: más rápido que cerca del {p}% de las personas',
@@ -305,7 +336,7 @@ var T = {
       gamebrain: ['Le Gusta Aprender, No La Escuela', 'Eres curioso; lo que no soportas es que te enseñen como si fuera tarea. En cuanto se siente como clase, tu mente se desconecta. Disfraza el aprendizaje de juego y te sorprenderá todo lo que se te queda.'],
       fresh: ['Aprendiz Científico', 'No quieres que te digan que vas muy bien. Quieres ver exactamente qué fallaste, por qué y qué corregir. Con un plan claro y resultados reales, nadie trabaja más duro que tú. Y cada palabra te acerca a {who}.'],
       hidden: ['Decidido Pero Olvidadizo', 'Sigues intentándolo, y las mismas palabras se te siguen escapando. No te falta esfuerzo. Necesitas que las palabras que olvidas regresen una y otra vez hasta quedarse. Cuando {who} te habla, quieres que la respuesta llegue a tiempo.'],
-      pressure: ['Perfecto Hasta La Presión', 'Tu inglés es bueno… hasta que importa. Para dominar un idioma de verdad tienes que recordar las palabras rápido y bajo presión. Es lo único que nunca has practicado. Esta es la práctica perfecta para ti.']
+      pressure: ['Perfecto Hasta La Presión', 'Tu {L} es bueno… hasta que importa. Para dominar un idioma de verdad tienes que recordar las palabras rápido y bajo presión. Es lo único que nunca has practicado. Esta es la práctica perfecta para ti.']
     },
     typeShort: {
       comeback: 'Está reaprendiendo. Solo lo deja; con amigos sigue.',
@@ -320,26 +351,29 @@ var T = {
     features: {
       friends: 'Invita a tu familia o amigos y mantengan una racha juntos. Alguien nota cuando faltas un día.',
       game: 'Primero es un juego. Vas a estar jugando, no estudiando.',
-      useful: 'Nada de listas de «cat» y «dog»: palabras que usarás de verdad.',
+      useful: 'Nada de listas de «{cat}» y «{dog}»: palabras que usarás de verdad.',
       small: 'Lecciones pequeñas, solo 10 palabras al día, con tarjetas de estudio incluidas.',
       spelling: 'Tú escribes las respuestas, así se te queda la ortografía.',
-      both: 'Practicas en los dos sentidos: inglés → español y español → inglés.',
+      both: 'Practicas en los dos sentidos: {L} → español y español → {L}.',
       errors: 'Un contador de errores marca las palabras exactas que fallas para que las refuerces.',
       duels: 'Reta a tus amigos a duelos. Perder contra tu primo motiva mucho.',
       speed: 'Las rondas con tiempo te entrenan para responder antes de que pase el momento.',
       words: 'Hasta 900 palabras, así que siempre hay un siguiente nivel.',
       pressure: 'Cada ronda se juega bajo presión, justo cuando antes se te iban las palabras.',
       recall: 'Recordar rápido deja tu mente libre para captar dichos y expresiones.',
-      all: 'Tres juegos, tres velocidades. Siempre hay algo a tu nivel.'
+      all: 'Juegos distintos, velocidades distintas. Siempre hay algo a tu nivel.'
     },
     tenADay: 'Con 10 palabras al día es suficiente.',
     yourGame: 'Hecho para ti',
     blurbs: {
       lt: 'Pelea en mundos con historia donde cada respuesta correcta es un golpe.',
       wb: 'Atrapa las palabras que caen antes de que lleguen arriba. Un arcade que enseña 600 palabras.',
-      tomato: 'Ayuda a un tomate espía a escapar de la fábrica de salsa. Cada puerta se abre con una palabra.'
+      tomato: 'Ayuda a un tomate espía a escapar de la fábrica de salsa. Cada puerta se abre con una palabra.',
+      lio: 'Una batalla de blobs donde cada choque es un duelo de palabras. Se juega en tu navegador.'
     },
     words: '{n} palabras · descarga gratis',
+    wordsPlay: '{n} palabras · gratis en tu navegador',
+    play: 'Jugar gratis ahora',
     madeFor: 'Este juego fue hecho para tu forma de aprender. Está diseñado para que olvides que estás aprendiendo, y te da las herramientas para empezar a hablar.',
     plan: 'Tu plan: 10 palabras al día.',
     download: 'Descargar gratis',
@@ -357,23 +391,27 @@ var T = {
   tl: {
     stepOf: 'Tanong {n} sa {t}',
     eyebrow: '30-segundong quiz',
-    title: 'Anong klase ka ng English learner?',
-    intro: 'Karamihan ay halo ng 5 na ito. Sagutin ang 30-segundong quiz para malaman kung alin ka, at kung bakit hindi pa tumatatak ang English mo.',
+    title: 'Anong klase ka ng {L} learner?',
+    titleAny: 'Anong klase ka ng language learner?',
+    intro: 'Karamihan ay halo ng 5 na ito. Sagutin ang 30-segundong quiz para malaman kung alin ka, at kung bakit hindi pa tumatatak ang {L} mo.',
+    introAny: 'Karamihan ay halo ng 5 na ito. Sagutin ang 30-segundong quiz para malaman kung alin ka, at kung bakit hindi pa tumatatak ang bagong wika mo.',
+    learnQ: 'Una: anong wika ang gusto mong matutunan?',
+    langNames: { es: 'Spanish', en: 'English', tl: 'Tagalog', fr: 'French', ko: 'Korean' },
     start: 'Alamin kung alin ako',
     family: 'Sino ang gusto mong maintindihan nang hindi na pinapaulit?',
     families: ['Ang mga anak o apo ko, na sumasagot sa English.', 'Ang pamilya ko sa abroad.', 'Ang pamilya ng partner ko.', 'Ang mga customer o boss ko.'],
-    level: "Aminin mo: ano ang nangyayari kapag may kumausap sa'yo sa English?",
+    level: "Aminin mo: ano ang nangyayari kapag may kumausap sa'yo sa {L}?",
     levels: [
       'May isang salita akong naiintindihan, tapos ngingiti at tatango na lang ako.',
       'Kaya kong bumuo ng sentence… basta walang naghihintay.',
       'Nakakaintindi ako nang dahan-dahan, pero nagta-Tagalog na lang sila para mabilis.',
       'Halos naiintindihan ko lahat, hanggang may gumamit ng slang o kasabihan at tapos na ang biro bago ko makuha.'
     ],
-    struggleQ: { A: 'Bakit hindi pa tumatatak?', B: "Ano ang pinakamahirap para sa'yo?", C: "Ano ang nagpapabagal sa'yo?", D: 'Kailan ka iniiwan ng English mo?' },
+    struggleQ: { A: 'Bakit hindi pa tumatatak?', B: "Ano ang pinakamahirap para sa'yo?", C: "Ano ang nagpapabagal sa'yo?", D: 'Kailan ka iniiwan ng {L} mo?' },
     struggle: {
       A: ['Nasubukan ko na dati. Nasa phone ko pa yung app.',
           'Parang assignment ang pag-aaral, at tapos na ako sa school.',
-          "Alam ko na ang «dog» at «cat». Gusto ko ng salitang talagang magagamit ko.",
+          "Alam ko na ang «{dog}» at «{cat}». Gusto ko ng salitang talagang magagamit ko.",
           'Nagsisimula ako sa zero at hindi ko alam kung saan magsisimula.'],
       B: ['Alam ko ang salita, pero hindi ko ma-spell nang tama.',
           'Mas marami akong naiintindihan kaysa nasasabi.',
@@ -388,9 +426,9 @@ var T = {
           'Nalilito ako sa slang at kasabihan.',
           'Walang nasa level ko, kaya tumigil na ako mag-practice.']
     },
-    challengeTitle: 'Mabilis na test: may 5 segundo ka.',
-    challengeQ: 'Ano ang «aso» sa English?',
-    challengeOpts: ['Dog', 'Cat', 'Bread', 'Door'],
+    challengeTitle: 'I-translate ang {L} na salitang ito nang pinakamabilis. 5 segundo.',
+    challengeQ: 'Ano ang ibig sabihin ng «{w}»?',
+    challengeOpts: ['Aso', 'Pusa', 'Tinapay', 'Pinto'],
     challengeRight: 'Sumagot ka habang tumatakbo ang 5-segundong timer. Ganyan ang pakiramdam ng bawat round.',
     challengeMissed: 'Naunahan ka ng timer. Iyan ang skill na walang nagte-train… hanggang ngayon.',
     speedFast: '⚡ {s} s: mas mabilis ka sa mga {p}% ng mga tao',
@@ -407,7 +445,7 @@ var T = {
       gamebrain: ['Mahilig Matuto, Hindi Sa School', 'Curious ka; ayaw mo lang turuan na parang assignment. Kapag parang klase na, nawawala ang interes mo. Itago ang pag-aaral sa laro at magugulat ka kung gaano karami ang tatatak.'],
       fresh: ['Ang Science Learner', 'Ayaw mong sabihan na magaling ka na. Gusto mong makita kung ano mismo ang mali mo, bakit, at ano ang aayusin. Bigyan ka ng malinaw na plano at totoong feedback, at walang makakatalo sa sipag mo.'],
       hidden: ['Determinado Pero Makakalimutin', 'Patuloy kang sumusubok, at patuloy ding nawawala ang parehong mga salita. Hindi sipag ang kulang sa\'yo. Kailangan mong bumalik-balik ang mga salitang nakakalimutan mo hanggang tumatak na talaga.'],
-      pressure: ['Perfect Hanggang May Pressure', "Magaling ang English mo… hanggang sa mahalagang sandali. Para tunay mong ma-master ang isang wika, kailangan mong maalala ang mga salita nang mabilis at may pressure. Iyan ang hindi mo pa napa-practice. Ito ang perpektong practice para sa'yo."]
+      pressure: ['Perfect Hanggang May Pressure', "Magaling ang {L} mo… hanggang sa mahalagang sandali. Para tunay mong ma-master ang isang wika, kailangan mong maalala ang mga salita nang mabilis at may pressure. Iyan ang hindi mo pa napa-practice. Ito ang perpektong practice para sa'yo."]
     },
     typeShort: {
       comeback: 'Nag-aaral ulit. Tumitigil mag-isa, tuloy kapag may kasama.',
@@ -422,26 +460,29 @@ var T = {
     features: {
       friends: 'Imbitahin ang pamilya o barkada at magtuloy ng streak nang sabay. May makakapansin kapag lumiban ka.',
       game: 'Laro muna ito. Maglalaro ka, hindi mag-aaral.',
-      useful: 'Hindi na puro «cat» at «dog»: mga salitang talagang gagamitin mo.',
+      useful: 'Hindi na puro «{cat}» at «{dog}»: mga salitang talagang gagamitin mo.',
       small: 'Maliliit na lesson, 10 salita lang kada araw, may kasamang flashcards.',
       spelling: 'Ikaw ang nagta-type ng sagot, kaya tumatatak ang spelling.',
-      both: 'Magpa-practice ka sa dalawang direksyon: English → Tagalog at Tagalog → English.',
+      both: 'Magpa-practice ka sa dalawang direksyon: {L} → Tagalog at Tagalog → {L}.',
       errors: 'May error counter na nagtatala ng mga salitang lagi mong mali, para ma-practice mo ang mahina mo.',
       duels: 'Hamunin ang barkada sa duel. Nakaka-motivate ang matalo sa pinsan mo.',
       speed: "Ang mga timed round ay nagtuturo sa'yong sumagot bago lumipas ang moment.",
       words: 'Hanggang 900 salita, kaya laging may susunod na level.',
       pressure: 'Bawat round ay nilalaro nang may pressure, mismong oras na dati ay nawawala ang mga salita.',
       recall: 'Kapag mabilis kang nakakaalala, malaya ang isip mong makuha ang slang at kasabihan.',
-      all: 'Tatlong laro, tatlong bilis. Laging may nasa level mo.'
+      all: 'Iba-ibang laro, iba-ibang bilis. Laging may nasa level mo.'
     },
     tenADay: 'Sapat na ang 10 salita kada araw.',
     yourGame: "Ginawa para sa'yo",
     blurbs: {
       lt: 'Lumaban sa mga mundo ng kwento kung saan bawat tamang sagot ay isang tama sa kalaban.',
       wb: 'Saluhin ang mga bumabagsak na salita bago umabot sa itaas. Arcade na nagtuturo ng 600 salita.',
-      tomato: 'Tulungan ang espiyang kamatis na tumakas sa pabrika ng sarsa. Bawat gate ay nabubuksan ng isang salita.'
+      tomato: 'Tulungan ang espiyang kamatis na tumakas sa pabrika ng sarsa. Bawat gate ay nabubuksan ng isang salita.',
+      lio: 'Blob battle kung saan bawat banggaan ay word duel. Nilalaro mismo sa browser mo.'
     },
     words: '{n} salita · libreng i-download',
+    wordsPlay: '{n} salita · libre sa browser',
+    play: 'Laruin nang libre ngayon',
     madeFor: 'Ginawa ang larong ito para sa klase mo ng pag-aaral. Dinisenyo ito para makalimutan mong nag-aaral ka, at bigyan ka ng tools para magsimulang magsalita.',
     plan: 'Ang plano mo: 10 salita kada araw.',
     download: 'I-download nang libre',
@@ -466,7 +507,18 @@ var bar = document.getElementById('bar');
 var stepLabel = document.getElementById('stepLabel');
 var challengeTimer = null;
 
-function fmt(s, vars) { return s.replace(/\{(\w+)\}/g, function (_, k) { return vars[k]; }); }
+function fmt(s, vars) { return s.replace(/\{(\w+)\}/g, function (m, k) { return k in vars ? vars[k] : m; }); }
+// Fills the chosen language into a string: {L} = its name in the page
+// language, {dog}/{cat}/{w} = words in that language.
+function L(s) {
+  if (!state || !state.learn) return s;
+  var w = WORDS[state.learn];
+  return fmt(s, { L: T[lang].langNames[state.learn], dog: w.dog, cat: w.cat, w: w.dog });
+}
+function learnParam() {
+  var q = new URLSearchParams(location.search).get('learn');
+  return q && WORDS[q] && q !== lang ? q : null;
+}
 function el(tag, attrs, children) {
   var e = document.createElement(tag);
   for (var k in attrs || {}) {
@@ -500,10 +552,18 @@ function setLang(l) {
 
 function restart() {
   clearInterval(challengeTimer);
-  state = { family: null, level: null, struggle: null, challenge: null, fun: null, time: null };
-  steps = ['challenge'].concat(T[lang].family ? ['family'] : [], ['level', 'struggle', 'fun', 'time']);
+  var preset = learnParam();
+  state = { learn: preset, family: null, level: null, struggle: null, challenge: null, fun: null, time: null };
+  steps = buildSteps(!preset);
   stepIndex = -1;
   renderIntro();
+}
+
+// The family question is about relatives who speak English, so it only shows
+// on the es/tl pages when the player is learning English.
+function buildSteps(askLearn) {
+  return (askLearn ? ['learn'] : []).concat(['challenge'],
+    T[lang].family && state.learn === 'en' ? ['family'] : [], ['level', 'struggle', 'fun', 'time']);
 }
 
 function setProgress() {
@@ -533,8 +593,8 @@ function renderIntro() {
   setProgress();
   screen.replaceChildren(
     el('p', { class: 'eyebrow', text: t.eyebrow }),
-    el('h1', { text: t.title }),
-    el('p', { class: 'lede', text: t.intro }),
+    el('h1', { text: state.learn ? L(t.title) : t.titleAny }),
+    el('p', { class: 'lede', text: state.learn ? L(t.intro) : t.introAny }),
     typeList(null),
     el('p', {}, [el('button', { class: 'cta', type: 'button', text: t.start, onclick: function () { track('quiz_start'); next(); } })])
   );
@@ -544,19 +604,28 @@ function next() {
   stepIndex++;
   setProgress();
   if (stepIndex >= steps.length) return renderResult();
-  ({ family: renderFamily, level: renderLevel, struggle: renderStruggle, challenge: renderChallenge, fun: renderFun, time: renderTime })[steps[stepIndex]]();
+  ({ learn: renderLearn, family: renderFamily, level: renderLevel, struggle: renderStruggle, challenge: renderChallenge, fun: renderFun, time: renderTime })[steps[stepIndex]]();
   window.scrollTo(0, 0);
 }
 
 function question(title, labels, onPick) {
   screen.replaceChildren(
-    el('h2', { text: title }),
+    el('h2', { text: L(title) }),
     el('div', { class: 'options' }, labels.map(function (label, i) {
-      return el('button', { class: 'option', type: 'button', text: label, onclick: function () { onPick(i); next(); } });
+      return el('button', { class: 'option', type: 'button', text: L(label), onclick: function () { onPick(i); next(); } });
     }))
   );
 }
 
+function renderLearn() {
+  var t = T[lang];
+  var choices = LEARN.filter(function (k) { return k !== lang; });
+  question(t.learnQ, choices.map(function (k) { return t.langNames[k][0].toUpperCase() + t.langNames[k].slice(1); }), function (i) {
+    state.learn = choices[i];
+    steps = buildSteps(true);
+    track('quiz_learn', { learn_lang: state.learn });
+  });
+}
 function renderFamily() { var t = T[lang]; question(t.family, t.families, function (i) { state.family = FAMILY[i]; }); }
 function renderLevel() { var t = T[lang]; question(t.level, t.levels, function (i) { state.level = 'ABCD'[i]; }); }
 function renderStruggle() {
@@ -608,8 +677,8 @@ function renderChallenge() {
     nextBtn.focus();
   }
   screen.replaceChildren(
-    el('p', { class: 'eyebrow', text: t.challengeTitle }),
-    el('h2', { text: t.challengeQ }),
+    el('p', { class: 'eyebrow', text: L(t.challengeTitle) }),
+    el('h2', { class: 'challenge-word', lang: state.learn === 'tl' ? 'fil' : state.learn, text: L(t.challengeQ) }),
     el('div', { class: 'timer' }, [timerFill]),
     el('div', { class: 'options' }, shuffled),
     speed,
@@ -657,18 +726,29 @@ function learnerMix() {
 // The Science Learner → The Last Translator if they like battles, else WordBust
 //   (both count missed words and star them automatically)
 // Perfect Until Pressure → WordBust (all three games help; the others are listed)
+// If the best game doesn't have the chosen language, the next one that does
+// is used: The Last Translator, then WordBust, then Language.io.
 function chooseGame() {
+  var best;
   switch (state.struggle[0]) {
-    case 'comeback': return 'lt';
-    case 'gamebrain': return 'tomato';
-    case 'hidden': return 'lt';
-    case 'fresh': return state.fun === 'battle' || state.fun === 'adventure' ? 'lt' : 'wb';
-    default: return 'wb';
+    case 'comeback': best = 'lt'; break;
+    case 'gamebrain': best = 'tomato'; break;
+    case 'hidden': best = 'lt'; break;
+    case 'fresh': best = state.fun === 'battle' || state.fun === 'adventure' ? 'lt' : 'wb'; break;
+    default: best = 'wb';
   }
+  return [best, 'lt', 'wb', 'lio'].filter(teaches)[0];
+}
+
+// True when the game has both the chosen language and the page language.
+function teaches(key) {
+  var l = GAMES[key].langs;
+  return l.indexOf(state.learn) >= 0 && l.indexOf(lang) >= 0;
 }
 
 function storeLink(key) {
   var g = GAMES[key];
+  if (g.play) return g.play + '?lang=' + (lang === 'tl' ? 'fil' : lang) + '&s=quiz_' + lang;
   return g.get ? g.get + '?s=quiz_' + lang : null;
 }
 
@@ -678,10 +758,10 @@ function gameCard(key, t) {
   var link = storeLink(key);
   var meanwhile = null;
   if (link) {
-    actions.appendChild(el('a', { class: 'cta', href: link, text: t.download }));
+    actions.appendChild(el('a', { class: 'cta', href: link, text: g.play ? t.play : t.download }));
   } else {
     actions.appendChild(el('a', { class: 'cta secondary', href: g.page, text: t.soon }));
-    var alt = state.fun === 'battle' ? 'lt' : 'wb';
+    var alt = [state.fun === 'battle' ? 'lt' : 'wb', 'lt', 'wb', 'lio'].filter(function (k) { return teaches(k) && storeLink(k); })[0];
     meanwhile = el('p', { class: 'small' }, [
       document.createTextNode(t.meanwhile + ' '),
       el('a', { href: storeLink(alt), text: GAMES[alt].name })
@@ -691,7 +771,7 @@ function gameCard(key, t) {
     el('p', { class: 'eyebrow', text: t.yourGame }),
     el('div', { class: 'game-head' }, [
       el('img', { src: g.icon, alt: '' }),
-      el('div', {}, [el('h3', { text: g.name }), el('p', { text: fmt(t.words, { n: g.words }) })])
+      el('div', {}, [el('h3', { text: g.name }), el('p', { text: fmt(g.play ? t.wordsPlay : t.words, { n: g.words }) })])
     ]),
     el('p', { text: t.blurbs[key] }),
     el('p', { class: 'made-for', text: t.madeFor }),
@@ -706,9 +786,10 @@ function renderResult() {
   var featureKey = state.struggle[1];
   var type = t.types[typeKey];
   var who = state.family ? t.who[state.family] : '';
-  var fortune = fmt(type[1], { who: who });
+  // Without a family answer, drop the sentence that names them.
+  var fortune = L(who ? fmt(type[1], { who: who }) : type[1].replace(/\s*[^.!?…]*\{who\}[^.!?]*[.!?]/g, ''));
   var gameKey = chooseGame();
-  var others = ['lt', 'wb', 'tomato'].filter(function (k) { return k !== gameKey; });
+  var others = GAME_ORDER.filter(function (k) { return k !== gameKey && teaches(k); });
 
   bar.style.width = '100%';
   stepLabel.textContent = '';
@@ -716,14 +797,14 @@ function renderResult() {
 
   var shareBtn = el('button', { class: 'cta secondary', type: 'button', text: t.share });
   shareBtn.onclick = function () {
-    var url = location.origin + location.pathname + '?lang=' + lang;
+    var url = location.origin + location.pathname + '?lang=' + lang + '&learn=' + state.learn;
     var text = fmt(t.shareText, { type: type[0] });
     track('quiz_share', { learner_type: typeKey });
     if (navigator.share) navigator.share({ title: document.title, text: text, url: url }).catch(function () {});
     else if (navigator.clipboard) navigator.clipboard.writeText(text + ' ' + url).then(function () { shareBtn.textContent = t.copied; });
   };
 
-  screen.replaceChildren(
+  screen.replaceChildren.apply(screen, [
     el('p', { class: 'eyebrow', text: t.typeLabel }),
     el('div', { class: 'result-head' }, [avatar(typeKey, 'lg'), el('p', { class: 'result-type', text: type[0] })]),
     el('p', { class: 'fortune', text: fortune }),
@@ -739,18 +820,18 @@ function renderResult() {
     })),
     el('p', { class: 'eyebrow', text: t.whyLabel }),
     el('ul', { class: 'why' }, [
-      el('li', { text: t.features[featureKey] }),
+      el('li', { text: L(t.features[featureKey]) }),
       el('li', { text: state.challenge ? t.challengeRight : t.challengeMissed }),
       el('li', { text: t.tenADay })
     ]),
     gameCard(gameKey, t),
-    el('p', { class: 'eyebrow', text: t.also }),
-    el('div', { class: 'also' }, others.map(function (k) {
+    others.length ? el('p', { class: 'eyebrow', text: t.also }) : null,
+    others.length ? el('div', { class: 'also' }, others.map(function (k) {
       return el('a', { href: storeLink(k) || GAMES[k].page }, [
         el('img', { src: GAMES[k].icon, alt: '' }),
-        el('span', { text: GAMES[k].name + ' · ' + fmt(t.words, { n: GAMES[k].words }) })
+        el('span', { text: GAMES[k].name + ' · ' + fmt(GAMES[k].play ? t.wordsPlay : t.words, { n: GAMES[k].words }) })
       ]);
-    })),
+    })) : null,
     el('details', { class: 'all-types' }, [
       el('summary', { text: t.allTypes }),
       typeList(typeKey)
@@ -760,17 +841,17 @@ function renderResult() {
       shareBtn,
       el('button', { class: 'cta secondary', type: 'button', text: t.retake, onclick: restart })
     ])
-  );
+  ].filter(Boolean));
   window.scrollTo(0, 0);
 }
 
 // Count every tap on a store link (main button, "also great for you", "start
 // today while you wait") as a download click for that game.
 screen.addEventListener('click', function (e) {
-  var a = e.target.closest('a[href*="/get/"]');
+  var a = e.target.closest('a[href*="/get/"], a[href*="language-io/?"]');
   if (!a) return;
   var href = a.getAttribute('href');
-  track('quiz_download', { game: /wordbust/.test(href) ? 'wb' : /tomato/.test(href) ? 'tomato' : 'lt' });
+  track('quiz_download', { game: /language-io/.test(href) ? 'lio' : /wordbust/.test(href) ? 'wb' : /tomato/.test(href) ? 'tomato' : 'lt' });
 });
 
 document.querySelectorAll('.langs button').forEach(function (b) {
