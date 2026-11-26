@@ -595,9 +595,15 @@ function renderIntro() {
     el('p', { class: 'eyebrow', text: t.eyebrow }),
     el('h1', { text: state.learn ? L(t.title) : t.titleAny }),
     el('p', { class: 'lede', text: state.learn ? L(t.intro) : t.introAny }),
+    startBtn(),
     typeList(null),
-    el('p', {}, [el('button', { class: 'cta', type: 'button', text: t.start, onclick: function () { track('quiz_start'); next(); } })])
+    startBtn()
   );
+  // The start button sits above the five types so nobody has to scroll to
+  // find it, with a second one at the bottom for people who read them all.
+  function startBtn() {
+    return el('p', {}, [el('button', { class: 'cta', type: 'button', text: t.start, onclick: function () { track('quiz_start'); next(); } })]);
+  }
 }
 
 function next() {
